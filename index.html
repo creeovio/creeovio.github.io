@@ -1,155 +1,158 @@
 <head>
-	<title>creeovio's repo</title>
+    <title>creeovio's repo</title>
 </head>
 
 <style>
-	body {
-		margin: 0 auto;
-		padding: 0;
-		background-color: rgba(0,0,0,0.7);
-	}
-	#container {
-		margin: 0 auto;
-		padding: 0;
-		outline: none;
-	}
-	#canvas {
-		margin: 0 auto;
-		padding: 0;
-	}
-	#form {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		width: 250px;
-		height: 30px;
-	}
-	#input {
-		width: 200px;
-		height: 30px;
-		padding: 0 8px;
-	}
-	#button {
-		width: 30px;
-		height: 30px;
-		padding: 0;
-	}
+    body {
+        margin: 0 auto;
+        padding: 0;
+        background-color: rgba(0,0,0,0.7);
+    }
+    #container {
+        margin: 0 auto;
+        padding: 0;
+        outline: none;
+    }
+    #canvas {
+        margin: 0 auto;
+        padding: 0;
+    }
+    #form {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 700px;
+        height: 100px;
+    }
+    #input {
+        width: 550px;
+        height: 100px;
+        font-size: 40px;
+        padding-left: 40px;
+    }
+    #button {
+        width: 100px;
+        height: 100px;
+        font-size: 40px;
+    }
 </style>
 
 <script type="text/javascript">
 
-	//game settings
-	var width = window.innerWidth;
-	var height = window.innerHeight;
-	var outerBounds = 600;
-	var N = 10;
-	var minRadius = 50;
-	var maxRadius = 500;
-	var minSpeed = 0.1;
-	var maxSpeed = 0.5;
-	var fps = 60;
-	var minAlpha = 0.2;
-	var maxAlpha = 0.2;
+    //game settings
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+    var outerBounds = 600;
+    var N = 10;
+    var minRadius = 75;
+    var maxRadius = 750;
+    var minSpeed = 0.1;
+    var maxSpeed = 0.5;
+    var fps = 60;
+    var minAlpha = 0.2;
+    var maxAlpha = 0.2;
 
-	//global variables
-	var container;
-	var canvas;
-	var context;
-	var objects = [];
-	var player;
-	var interval;
-	var pi = Math.PI;
+    //global variables
+    var container;
+    var canvas;
+    var context;
+    var objects = [];
+    var player;
+    var interval;
+    var pi = Math.PI;
 
-	//init variables
-	function init(){
-		//window.addEventListener('resize', function(event){location.reload();});
-		//init canvas
-		container = document.getElementById("container");
-		canvas = document.getElementById("canvas");
-		canvas.setAttribute("width", width);
-		canvas.setAttribute("height", height);
-		context = canvas.getContext("2d");
-		context.clearRect(0, 0, width, height);
-		//init objects
-		player = {x:width/2, y:height/2, radius:minRadius, speed:maxSpeed};
-		for(var i=0; i<N; i++){
-			objects.push({
-				id:i,
-				x:-outerBounds+maxRadius+Math.random()*(width+2*(outerBounds-maxRadius)),
-				y:-outerBounds+maxRadius+Math.random()*(height+2*(outerBounds-maxRadius)),
-				radius:minRadius+Math.random()*(maxRadius-minRadius),
-				angle:Math.random()*2*pi,
-				speed:minSpeed+Math.random()*(maxSpeed-minSpeed),
-				color:randomColorString()
-			});
-		}
-		//start loop
-		interval = setInterval(function() {
-			update();
-			draw();
-		}, 1000/fps);
-		//set focus
-		container.focus();
-	}
+    //init variables
+    function init(){
+        //window.addEventListener('resize', function(event){location.reload();});
+        //init canvas
+        container = document.getElementById("container");
+        canvas = document.getElementById("canvas");
+        canvas.setAttribute("width", width);
+        canvas.setAttribute("height", height);
+        context = canvas.getContext("2d");
+        context.clearRect(0, 0, width, height);
+        //init objects
+        player = {x:width/2, y:height/2, radius:minRadius, speed:maxSpeed};
+        for(var i=0; i<N; i++){
+            objects.push({
+                id:i,
+                x:-outerBounds+maxRadius+Math.random()*(width+2*(outerBounds-maxRadius)),
+                y:-outerBounds+maxRadius+Math.random()*(height+2*(outerBounds-maxRadius)),
+                radius:minRadius+Math.random()*(maxRadius-minRadius),
+                angle:Math.random()*2*pi,
+                speed:minSpeed+Math.random()*(maxSpeed-minSpeed),
+                color:randomColorString()
+            });
+        }
+        //start loop
+        interval = setInterval(function() {
+            update();
+            draw();
+        }, 1000/fps);
+        //set focus
+        container.focus();
+    }
 
-	//draw canvas
-	function draw(){
-		//clear canvas
-		context.clearRect(0, 0, width, height);
-		context.fillStyle = "white";
-		context.fillRect(0, 0, width, height)
-		//draw objects
-		for(var i=0; i<objects.length; i++){
-			context.fillStyle = objects[i].color;
-			context.beginPath();
-			context.arc(objects[i].x, objects[i].y, objects[i].radius, 0, 2*pi);
-			context.fill();
-		}
-	}
+    //draw canvas
+    function draw(){
+        //clear canvas
+        context.clearRect(0, 0, width, height);
+        context.fillStyle = "white";
+        context.fillRect(0, 0, width, height)
+        //draw objects
+        for(var i=0; i<objects.length; i++){
+            context.fillStyle = objects[i].color;
+            context.beginPath();
+            context.arc(objects[i].x, objects[i].y, objects[i].radius, 0, 2*pi);
+            context.fill();
+        }
+    }
 
-	//update variables
-	function update(){
-		//object collision
-		for(var i=0; i<objects.length; i++){
-			//x collision
-			if(objects[i].x-objects[i].radius <= -outerBounds || objects[i].x+objects[i].radius >= width+outerBounds) objects[i].angle = pi - objects[i].angle;
-			//y collision
-			if(objects[i].y-objects[i].radius <= -outerBounds || objects[i].y+objects[i].radius >= height+outerBounds) objects[i].angle = 2*pi - objects[i].angle;
-			//object movement
-			objects[i].x += objects[i].speed * Math.cos(objects[i].angle);
-			objects[i].y += objects[i].speed * Math.sin(objects[i].angle);
-		}
-	}
+    //update variables
+    function update(){
+        //object collision
+        for(var i=0; i<objects.length; i++){
+            //x collision
+            if(objects[i].x-objects[i].radius <= -outerBounds || objects[i].x+objects[i].radius >= width+outerBounds) objects[i].angle = pi - objects[i].angle;
+            //y collision
+            if(objects[i].y-objects[i].radius <= -outerBounds || objects[i].y+objects[i].radius >= height+outerBounds) objects[i].angle = 2*pi - objects[i].angle;
+            //object movement
+            objects[i].x += objects[i].speed * Math.cos(objects[i].angle);
+            objects[i].y += objects[i].speed * Math.sin(objects[i].angle);
+        }
+    }
 
-	function randomColorString(){
-		var string = "rgba(";
-		string += Math.round(Math.random()*255);
-		string += ",";
-		string += Math.round(Math.random()*255);
-		string += ",";
-		string += Math.round(Math.random()*255);
-		string += ",";
-		string += minAlpha+Math.random()*(maxAlpha-minAlpha);
-		string += ")";
-		return string;
-	}
-	
-	function openResource() {
-		let res = document.getElementById("input").value;
-		window.open("pages/" + res + ".html");
-	}
+    function randomColorString(){
+        var string = "rgba(";
+        string += Math.round(Math.random()*255);
+        string += ",";
+        string += Math.round(Math.random()*255);
+        string += ",";
+        string += Math.round(Math.random()*255);
+        string += ",";
+        string += minAlpha+Math.random()*(maxAlpha-minAlpha);
+        string += ")";
+        return string;
+    }
+    
+    function openResource(event) {
+        event.preventDefault();
+        let res = document.getElementById("input").value;
+        document.getElementById("input").value = "";
+        if(res != null && res.trim() != "") window.open("pages/" + res + ".html");
+    }
 
 </script>
 
 <body onload="init();">
 
-	<div id="container">
-		<canvas id="canvas"></canvas>
-		<div id="form">
-			<input type="text" id="input" placeholder="enter resource name">
-			<button id="button" onclick="openResource();">GO</button>
-		</div>
-	</div>
+    <div id="container">
+        <canvas id="canvas"></canvas>
+        <form id="form" onsubmit="openResource(event);">
+            <input type="text" id="input" placeholder="enter resource name">
+            <input type="submit" id="button" value="GO">
+        </form>
+    </div>
 
 </body>
