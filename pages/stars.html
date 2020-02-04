@@ -1,0 +1,230 @@
+<style>
+	body{
+		margin: 0 auto;
+		padding: 0;
+		background-color: rgba(0,0,0,0.7);
+	}
+	#container{
+		margin: 0 auto;
+		padding: 0;
+		outline: none;
+	}
+	#canvas{
+		margin: 0 auto;
+		padding: 0;
+	}
+</style>
+
+<script type="text/javascript">
+
+	//game settings
+	var width = window.innerWidth;
+	var height = window.innerHeight;
+	var northX = window.innerWidth+100;
+	var northY = window.innerHeight+100;
+	var skyRadius = window.innerWidth+200;
+	var N = 1000;
+	var speed = 0.0001;
+	var starRadius = 1;
+	var moonRadius = 10;
+	var fireworkFreq = 0.01;
+	var fps = 30;
+	var minAlpha = 0;
+	var maxAlpha = 1;
+
+	//global variables
+	var container;
+	var canvas;
+	var context;
+	var stars = [];
+	var moon;
+	var buildings = [];
+	var rocketOrigin;
+	var rockets = [];
+	var fireworks = [];
+	var north;
+	var interval;
+	var gradient;
+	var pi = Math.PI;
+	var keys = [];
+
+	//init variables
+	function init(){
+		window.addEventListener('resize', function(event){
+			location.reload();
+		});
+		//init canvas
+		container = document.getElementById("container");
+		canvas = document.getElementById("canvas");
+		canvas.setAttribute("width", width);
+		canvas.setAttribute("height", height);
+		context = canvas.getContext("2d");
+		gradient = context.createLinearGradient(0,0,0,height);
+		gradient.addColorStop(0,"black");
+		gradient.addColorStop(0.6,"rgb(0,0,30)");
+		gradient.addColorStop(1,"rgb(30,30,50)");
+		//init objects
+		north = {x: northX, y: northY};
+		moon = {x: Math.random()*width, y: Math.random()*height, angle: null};
+		moon.angle = Math.atan2(moon.y-north.y, moon.x-north.x);
+		//stars
+		for(var i=0; i<N; i++){
+			stars.push({
+				x: north.x - skyRadius + Math.random()*skyRadius*2,
+				y: north.y - skyRadius + Math.random()*skyRadius*2,
+				color: "rgba(255,255,255,"+(minAlpha+Math.random()*(maxAlpha-minAlpha))+")",
+				angle: null
+			});
+			stars[i].angle = Math.atan2(stars[i].y-north.y, stars[i].x-north.x);
+		}
+		//small buildings
+		for(var i=0; i<160; i++){
+			buildings.push({
+				x1: Math.random()*width,
+				width: 20+Math.random()*20,
+				height: 20+Math.random()*30
+			});
+		}
+		//tall buildings
+		for(var i=0; i<40; i++){
+			buildings.push({
+				x1: Math.random()*width,
+				width: 10+Math.random()*20,
+				height: 30+Math.random()*40
+			});
+		}
+		rocketOrigin = {x: width*3/8+Math.random()*width/4, y:height};
+		//start loop
+		interval = setInterval(function() {
+			update();
+			draw();
+		}, 1000/fps);
+		//set focus
+		container.focus();
+	}
+
+	//draw canvas
+	function draw(){
+		//clear canvas
+		context.clearRect(0, 0, width, height);
+		context.fillStyle = gradient;
+		context.fillRect(0, 0, width, height)
+		//draw stars
+		for(var i=0; i<stars.length; i++){
+			context.fillStyle = stars[i].color;
+			context.beginPath();
+			context.arc(stars[i].x, stars[i].y, starRadius, 0, 2*pi);
+			context.fill();
+		}
+		//draw moon
+		context.fillStyle = "white";
+		context.beginPath();
+		context.arc(moon.x, moon.y, moonRadius, 0, 2*pi);
+		context.fill();
+		//draw rockets
+		for(var i=0; i<rockets.length; i++){
+			context.fillStyle = "rgba(255,255,255,"+(30/rockets[i].lifetime-0.5)+")";
+			context.beginPath();
+			context.arc(rockets[i].x, rockets[i].y, 1, 0, 2*pi);
+			context.fill();
+		}
+		//draw fireworks
+		for(var i=0; i<fireworks.length; i++){
+			context.fillStyle = "rgba("+fireworks[i].color.r+","+fireworks[i].color.g+","+fireworks[i].color.b+","+(4-fireworks[i].lifetime/15)+")";
+			var log = Math.log(fireworks[i].lifetime);
+			var size = fireworks[i].size*log;
+			var size2 = size * 0.75;
+			var size3 = size * 0.5;
+			var size4 = size * 0.25;
+			for(var j=0; j<fireworks[i].n; j+=2){
+				context.beginPath();
+				context.arc(fireworks[i].x+Math.cos(2*j*pi/fireworks[i].n)*size, fireworks[i].y+Math.sin(2*j*pi/fireworks[i].n)*size, 1, 0, 2*pi);
+				context.fill();
+			}
+			for(var j=1; j<fireworks[i].n; j+=2){
+				context.beginPath();
+				context.arc(fireworks[i].x+Math.cos(2*j*pi/fireworks[i].n)*size2, fireworks[i].y+Math.sin(2*j*pi/fireworks[i].n)*size2, 1, 0, 2*pi);
+				context.fill();
+			}
+			for(var j=0; j<fireworks[i].n; j+=3){
+				context.beginPath();
+				context.arc(fireworks[i].x+Math.cos(2*j*pi/fireworks[i].n)*size3, fireworks[i].y+Math.sin(2*j*pi/fireworks[i].n)*size3, 1, 0, 2*pi);
+				context.fill();
+			}
+			for(var j=1; j<fireworks[i].n; j+=4){
+				context.beginPath();
+				context.arc(fireworks[i].x+Math.cos(2*j*pi/fireworks[i].n)*size4, fireworks[i].y+Math.sin(2*j*pi/fireworks[i].n)*size4, 1, 0, 2*pi);
+				context.fill();
+			}
+			context.beginPath();
+			context.arc(fireworks[i].x, fireworks[i].y, 1, 0, 2*pi);
+			context.fill();
+		}
+		//draw buildings
+		context.fillStyle = "black";
+		context.fillRect(0, height-10, width, 10);
+		for(var i=0; i<200; i++){
+			context.fillRect(buildings[i].x1, height-buildings[i].height, buildings[i].width, buildings[i].height);
+		}
+	}
+
+	//update variables
+	function update(){
+		moon.angle = (moon.angle+speed)%(2*pi);
+		moon.x = Math.cos(moon.angle)*dist(moon.x, moon.y, north.x, north.y) + north.x;
+		moon.y = Math.sin(moon.angle)*dist(moon.x, moon.y, north.x, north.y) + north.y;
+		for(var i=0; i<stars.length; i++){
+			stars[i].angle = (stars[i].angle+speed)%(2*pi);
+			stars[i].x = Math.cos(stars[i].angle)*dist(stars[i].x, stars[i].y, north.x, north.y) + north.x;
+			stars[i].y = Math.sin(stars[i].angle)*dist(stars[i].x, stars[i].y, north.x, north.y) + north.y;
+		}
+		rockets = rockets.filter(function(rocket){
+			return rocket.lifetime < 80;
+		});
+		for(var i=0; i<rockets.length; i++){
+			rockets[i].lifetime += 1;
+			rockets[i].x = rockets[i].x + rockets[i].sway;
+			rockets[i].y = rockets[i].y - rockets[i].speed*(30/(rockets[i].lifetime));
+			if(rockets[i].lifetime == 80){
+				fireworks.push({x:rockets[i].x, y:rockets[i].y, color:{r:55+Math.round(Math.random()*200), g:55+Math.round(Math.random()*200), b:55+Math.round(Math.random()*200)}, n:12+Math.round(Math.random()*28), lifetime:1, size:rockets[i].speed*(5+Math.random()*2)});
+			}
+		}
+		fireworks = fireworks.filter(function(firework){
+			return firework.lifetime < 60;
+		});
+		for(var i=0; i<fireworks.length; i++){
+			fireworks[i].lifetime += 1;
+		}
+		if(Math.random() < fireworkFreq){
+			rockets.push({x: rocketOrigin.x, y:height, speed:1.2+Math.random(), sway:-0.25+Math.random()/2, lifetime:1});
+		}
+		//key events
+		for(var i=0; i<keys.length; i++){
+			switch(keys[i]){
+			}
+		}
+	}
+
+	function dist(x1, y1, x2, y2){
+		var dx = x2-x1;
+		var dy = y2-y1;
+		return Math.sqrt(dx*dx+dy*dy);
+	}
+
+	function keydown(event){
+		if(!keys.includes(event.keyCode)) keys.push(event.keyCode);
+	}
+
+	function keyup(event){
+		keys.splice(keys.indexOf(event.keyCode),1);
+	}
+
+</script>
+
+<body onload="init();">
+
+	<div id="container" tabindex="1" onkeydown="keydown(event);" onkeyup="keyup(event);">
+		<canvas id="canvas" onclick="clearInterval(interval);"></canvas>
+	</div>
+
+</body>

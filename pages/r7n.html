@@ -1,0 +1,189 @@
+<head>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+
+<style>
+	table {
+		font-family: 'Proxima Nova Soft', 'Helvetica Neue', sans-serif;
+		border-collapse: collapse;
+	}
+	tr {
+		border-bottom: 1px solid lightgray;
+	}
+	tr:last-child {
+		border-bottom: none;
+	}
+	td {
+		vertical-align: middle;
+	}
+	.tdTime {
+		font-size: 12px;
+		text-align: center;
+		padding-right: 16px;
+		padding-top: 4px;
+		padding-bottom: 4px;
+		cursor: default;
+	}
+	.tdMatch {
+		font-size: 16px;
+		padding-right: 16px;
+		padding-top: 4px;
+		padding-bottom: 4px;
+		cursor: hand;
+	}
+	.tdLang {
+		font-size: 12px;
+		text-align: center;
+		padding-right: 16px;
+		padding-top: 4px;
+		padding-bottom: 4px;
+		cursor: default;
+	}
+	.tdLink {
+		font-size: 16px;
+		padding-right: 16px;
+		padding-top: 4px;
+		padding-bottom: 4px;
+		cursor: hand;
+	}
+	#loader {
+		border: 4px solid lightgray;
+		border-top: 4px solid black;
+		border-radius: 50%;
+		width: 20px;
+		height: 20px;
+		animation: spin 1s linear infinite;
+	}
+	
+	@keyframes spin {
+		0% { transform: rotate(0deg); }
+		100% { transform: rotate(360deg); }
+	}
+</style>
+
+<script src="https://www.ronaldo7.net/kickoff1.js"></script>
+<script>
+	const dates = [numberfinal, numberfinal2, numberfinal3, numberfinal4, numberfinal5, numberfinal6];
+	const countries = {"Italian":"it", "English":"gb", "Spanish":"es", "French":"fr", "German":"de", "Russian":"ru", "Portuguese":"pt", "Arab":"ma"};
+	var j;
+	var content;
+	var elements = [];
+	var matches = [];
+	var links = [];
+	function init() {
+		window.onbeforeunload = function(){return "";}
+		loadMatches();
+	}
+	
+	function loadMatches() {
+		document.querySelectorAll("#table>tr").forEach(e => e.parentNode.removeChild(e));
+		document.querySelector("#loader").style.display = "block";
+		$.getJSON(
+			'http://www.whateverorigin.org/get?url=' + encodeURIComponent('https://www.ronaldo7.net/video/watch-football-live.html') + '&callback=?',
+			function(data){
+				content = document.createElement("div");
+				content.innerHTML = data.contents;
+				elements = content.querySelectorAll("[id^='matchOriginal']:not([id$='Hidden'])");
+				matches = [];
+				for(let i=0; i<elements.length; i++) {
+					matches.push({
+						home:elements[i].querySelectorAll(".style230")[0].innerHTML.trim(),
+						away:elements[i].querySelectorAll(".style230")[2].innerHTML.trim(),
+						link:elements[i].querySelectorAll(".style117 .style182")[0].href.trim(),
+						datetime:dates[i],
+						event:elements[i].querySelector("#fixedtime1").innerHTML.split("<span", 1)[0].trim()
+					});
+				}
+				matches.sort(function(a, b){return a.datetime-b.datetime});
+				showMatches();
+			}
+		);
+	}
+	
+	function loadLinks(matchLink) {
+		document.querySelectorAll("#table>tr").forEach(e => e.parentNode.removeChild(e));
+		document.querySelector("#loader").style.display = "block";
+		$.getJSON(
+			'http://www.whateverorigin.org/get?url=' + encodeURIComponent(matchLink) + '&callback=?',
+			function(data){
+				content = document.createElement("div");
+				content.innerHTML = data.contents;
+				elements = content.querySelectorAll("span.style9");
+				links = [];
+				for(let i=0; i<elements.length; i++) {
+					if(elements[i].querySelector(".style208") != null && 
+						elements[i].querySelector(".style217") != null && 
+						elements[i].querySelector(".style217").innerText.includes(":")) {
+						links.push({
+							number: elements[i].querySelector(".style208").innerHTML.replace("Link","").trim(),
+							url: elements[i].querySelector(".style208").href.trim(),
+							language: elements[i].querySelector(".style217").innerText.split(":")[0].trim(),
+							broadcaster: elements[i].querySelector(".style217").innerText.split(":")[1].replace("HD","").trim(),
+							hd: elements[i].querySelector(".style217").innerText.split(":")[1].includes("HD"),
+							hostname: new URL(elements[i].querySelector(".style208").href.trim()).hostname
+						})
+					}
+				}
+				showLinks();
+			}
+		);
+	}
+	
+	function showMatches() {
+		let table = document.getElementById("table");
+		document.querySelector("#loader").style.display = "none";
+		for(let i=0; i<matches.length; i++) {
+			let match = matches[i];
+			let tr = document.createElement("tr");
+			let tdTime = document.createElement("td");
+			tdTime.innerHTML = match.datetime.toLocaleDateString("it-IT",{weekday:"short",day:"2-digit"}) + " " 
+				+ match.datetime.toLocaleTimeString("it-IT",{hour12:false,hour:"2-digit",minute:"2-digit"}) + "<br>" 
+				+ match.event;
+			tdTime.classList.add("tdTime");
+			tr.appendChild(tdTime);
+			let tdMatch = document.createElement("td");
+			tdMatch.innerHTML = match.home + " - " + match.away;
+			tdMatch.setAttribute("onclick", "loadLinks(\"" + match.link + "\")");
+			tdMatch.classList.add("tdMatch");
+			tr.appendChild(tdMatch);
+			table.appendChild(tr);
+		}
+	}
+	
+	function showLinks() {
+		let table = document.getElementById("table");
+		document.querySelector("#loader").style.display = "none";
+		let tr = document.createElement("tr");
+		let td = document.createElement("td");
+		td.innerHTML = "&lt; Indietro";
+		td.setAttribute("colspan", "2");
+		td.setAttribute("onclick", "loadMatches()");
+		td.classList.add("tdLink");
+		tr.appendChild(td);
+		table.appendChild(tr);
+		for(let i=0; i<links.length; i++) {
+			let link = links[i];
+			if(link.number > 3) {
+				let tr = document.createElement("tr");
+				let tdLang = document.createElement("td");
+				tdLang.innerHTML = link.number + (link.hd ? "hd" : "sd") + "<br>" + link.language;
+				tdLang.classList.add("tdLang");
+				tr.appendChild(tdLang);
+				let tdLink = document.createElement("td");
+				tdLink.innerHTML = link.broadcaster + " - " + link.hostname;
+				tdLink.setAttribute("onclick", "window.open(\"" + link.url + "\")");
+				tdLink.classList.add("tdLink");
+				let imgFlag = document.createElement("img");
+				imgFlag.src = "https://www.countryflags.io/"+ countries[link.language] + "/flat/16.png";
+				tdLink.appendChild(imgFlag);
+				tr.appendChild(tdLink);
+				table.appendChild(tr);
+			}
+		}
+	}
+</script>
+
+<body onload="init();">
+	<div id="loader"></div>
+	<table id="table"></table>
+</body>

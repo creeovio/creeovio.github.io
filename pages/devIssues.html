@@ -1,0 +1,525 @@
+<head>
+	<link href="devIssues.css" rel="stylesheet" type="text/css">
+	<link rel="icon" href="https://png.icons8.com/windows/32/000000/launched-rocket.png">
+	<title>devIssues</title>
+</head>
+
+<script src="https://www.gstatic.com/firebasejs/5.3.0/firebase.js"></script>
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyAR43H9CkPC9MrL70AO2_6G8u12k2oyjtk",
+    authDomain: "devissues-ed339.firebaseapp.com",
+    databaseURL: "https://devissues-ed339.firebaseio.com",
+    projectId: "devissues-ed339",
+    storageBucket: "",
+    messagingSenderId: "540088237431"
+  };
+  firebase.initializeApp(config);
+  var dbRef = firebase.app().database().ref();
+</script>
+
+<script>
+
+	var statuses = {"nd":0, "to_do":1, "to_test":2, "to_deploy":3, "on_hold":4, "done":5};
+	var environments = {"svil":0, "test":1, "pp":2, "pro":3};
+	var list;
+	var data;
+	var filterString = "";
+	var showDone = true;
+	var scrollAnimation;
+	var editAnimation;
+	
+	function createLi(object){
+		let li = document.createElement("li");
+		let div = document.createElement("div");
+		div.setAttribute("class", "item");
+		let label = document.createElement("div");
+		label.setAttribute("class", "label");
+		let title = document.createElement("p");
+		title.setAttribute("class", "title");
+		title.innerHTML = object.title;
+		let link = document.createElement("div");
+		link.setAttribute("class", "link");
+		link.setAttribute("title", object.link);
+		link.setAttribute("href", object.link);
+		link.setAttribute("onclick", "window.open('"+object.link+"'); doNothing(event);");
+		let edit = document.createElement("div");
+		edit.setAttribute("class", "edit");
+		edit.setAttribute("onclick", "edit('"+object.id+"', '"+list.childElementCount+"')");
+		let editLabel = document.createElement("label");
+		editLabel.setAttribute("class", "editLabel");
+		editLabel.innerHTML = "EDIT";
+		let editIcon = document.createElement("div");
+		editIcon.setAttribute("class", "editIcon");
+		let project = document.createElement("p");
+		project.setAttribute("class", "project");
+		project.innerHTML = object.project + " - ";
+		let notes = document.createElement("p");
+		notes.setAttribute("class", "notes");
+		notes.innerHTML = object.notes;
+		let environmentIcon = document.createElement("div");
+		environmentIcon.setAttribute("class", "environmentIcon " + object.environment.split(">")[0]);
+		let environmentLabel = document.createElement("label");
+		environmentLabel.setAttribute("class", "environmentLabel " + object.environment.split(">")[0]);
+		environmentLabel.innerHTML = object.environment.includes(">") ? ("Deploying to " + object.environment.split(">")[1].toUpperCase()) : object.environment.toUpperCase();
+		let statusIcon = document.createElement("div");
+		statusIcon.setAttribute("class", "statusIcon "+object.status);
+		let statusLabel = document.createElement("label");
+		statusLabel.setAttribute("class", "statusLabel "+object.status);
+		statusLabel.innerHTML = object.status.replace("_", " ").toUpperCase();
+		
+		edit.appendChild(editLabel);
+		edit.appendChild(editIcon);
+		div.appendChild(edit);
+		div.appendChild(label);
+		div.appendChild(environmentIcon);
+		div.appendChild(environmentLabel);
+		div.appendChild(statusIcon);
+		div.appendChild(statusLabel);
+		if(object.link != null && object.link != "") div.appendChild(link);
+		div.appendChild(document.createElement("br"));
+		if(object.project != null && object.project != "") div.appendChild(project);
+		div.appendChild(title);
+		if(object.notes != null && object.notes != "") div.appendChild(notes);
+		li.appendChild(div);
+		return li;
+	}
+	function createHeader(string){
+		let li = document.createElement("li");
+		let div = document.createElement("div");
+		div.setAttribute("class", "header");
+		let title = document.createElement("label");
+		title.setAttribute("class", "header");
+		title.innerHTML = string;
+		div.appendChild(title);
+		li.appendChild(div);
+		return li;
+	}
+	function createEditBox(id, title, project, status, environment, link, notes, timestamp){
+		groupBySelected();
+		
+		let editBox = document.createElement("div");
+		editBox.setAttribute("class", "editBox");
+		editBox.setAttribute("onclick", "doNothing(event);");
+		let table = document.createElement("table");
+		
+		let tr = document.createElement("tr");
+		let td = document.createElement("td");
+		let projectLabel = document.createElement("label");
+		projectLabel.setAttribute("class", "editBoxLabel");
+		projectLabel.innerHTML = "PROJECT";
+		td.appendChild(projectLabel);
+		tr.appendChild(td);
+		td = document.createElement("td");
+		let projectInput = document.createElement("input");
+		projectInput.id = "projectInput";
+		projectInput.setAttribute("class", "editBoxInput");
+		if(project != null) projectInput.value = project;
+		td.appendChild(projectInput);
+		tr.appendChild(td);
+		table.appendChild(tr);
+		
+		tr = document.createElement("tr");
+		td = document.createElement("td");
+		let titleLabel = document.createElement("label");
+		titleLabel.setAttribute("class", "editBoxLabel");
+		titleLabel.innerHTML = "TITLE";
+		td.appendChild(titleLabel);
+		tr.appendChild(td);
+		td = document.createElement("td");
+		let titleInput = document.createElement("input");
+		titleInput.id = "titleInput";
+		titleInput.setAttribute("class", "editBoxInput");
+		if(title != null) titleInput.value = title;
+		td.appendChild(titleInput);
+		tr.appendChild(td);
+		table.appendChild(tr);
+		
+		tr = document.createElement("tr");
+		td = document.createElement("td");
+		let environmentLabel = document.createElement("label");
+		environmentLabel.setAttribute("class", "editBoxLabel");
+		environmentLabel.innerHTML = "ENVIRONMENT";
+		td.appendChild(environmentLabel);
+		tr.appendChild(td);
+		td = document.createElement("td");
+		let environmentSelect = document.createElement("select");
+		environmentSelect.id = "environmentSelect";
+		environmentSelect.setAttribute("class", "editBoxSelect");
+		for(const e of ["svil", "svil>test", "test", "test>pp", "pp", "pp>pro", "pro"]){
+			let option = document.createElement("option");
+			option.value = e;
+			option.innerHTML = e.replace("_", " ").toUpperCase();
+			if(e == environment) option.selected = true;
+			environmentSelect.appendChild(option);
+		}
+		td.appendChild(environmentSelect);
+		tr.appendChild(td);
+		table.appendChild(tr);
+		
+		tr = document.createElement("tr");
+		td = document.createElement("td");
+		let statusLabel = document.createElement("label");
+		statusLabel.setAttribute("class", "editBoxLabel");
+		statusLabel.innerHTML = "STATUS";
+		td.appendChild(statusLabel);
+		tr.appendChild(td);
+		td = document.createElement("td");
+		let statusSelect = document.createElement("select");
+		statusSelect.id = "statusSelect";
+		statusSelect.setAttribute("class", "editBoxSelect");
+		for(const s of ["nd", "to_do", "to_test", "on_hold", "to_deploy", "done"]){
+			let option = document.createElement("option");
+			option.value = s;
+			option.innerHTML = s.replace("_", " ");
+			if(s == status) option.selected = true;
+			statusSelect.appendChild(option);
+		}
+		td.appendChild(statusSelect);
+		tr.appendChild(td);
+		table.appendChild(tr);
+		
+		tr = document.createElement("tr");
+		td = document.createElement("td");
+		let linkLabel = document.createElement("label");
+		linkLabel.setAttribute("class", "editBoxLabel");
+		linkLabel.innerHTML = "LINK";
+		td.appendChild(linkLabel);
+		tr.appendChild(td);
+		td = document.createElement("td");
+		let linkInput = document.createElement("input");
+		linkInput.id = "linkInput";
+		linkInput.setAttribute("class", "editBoxInput");
+		if(link != null) linkInput.value = link;
+		td.appendChild(linkInput);
+		tr.appendChild(td);
+		table.appendChild(tr);
+		
+		tr = document.createElement("tr");
+		td = document.createElement("td");
+		let notesLabel = document.createElement("label");
+		notesLabel.setAttribute("class", "editBoxLabel");
+		notesLabel.innerHTML = "NOTES";
+		td.appendChild(notesLabel);
+		tr.appendChild(td);
+		td = document.createElement("td");
+		let notesInput = document.createElement("textarea");
+		notesInput.id = "notesInput";
+		notesInput.setAttribute("class", "editBoxInput");
+		notesInput.rows = id!= null ? notes.split(/\r\n|\r|\n/).length : 1;
+		if(notes != null) notesInput.value = notes;
+		td.appendChild(notesInput);
+		tr.appendChild(td);
+		table.appendChild(tr);
+		
+		tr = document.createElement("tr");
+		td = document.createElement("td");
+		td.setAttribute("colspan", "2");
+		td.setAttribute("align", "right");
+		if(timestamp != null){
+			let lastModified = document.createElement("label");
+			lastModified.setAttribute("class", "editBoxLabel editBoxLabelDate");
+			date = new Date(timestamp);
+			lastModified.innerHTML = "LAST MODIFIED: "+date.getDate()+"/"+(date.getMonth()+1)+"/"+date.getFullYear()+" "+date.toTimeString().substring(0,5);
+			td.appendChild(lastModified);
+		}
+		let save = document.createElement("button");
+		save.innerHTML = "SAVE";
+		save.setAttribute("class", "editBoxButton");
+		save.setAttribute("onclick", "addItem("+id+"); closeEditBox(event); saveData(); groupBySelected();");
+		td.appendChild(save);
+		let del = document.createElement("button");
+		del.innerHTML = "DELETE";
+		del.setAttribute("class", "editBoxButton delete");
+		del.setAttribute("onclick", "if(window.confirm('Delete this item?')){removeItem("+id+"); closeEditBox(event); saveData(); groupBySelected();}");
+		if(id != null) td.appendChild(del);
+		let cancel = document.createElement("button");
+		cancel.innerHTML = "CANCEL";
+		cancel.setAttribute("class", "editBoxButton cancel");
+		cancel.setAttribute("onclick", "closeEditBox(event);");
+		td.appendChild(cancel);
+		tr.appendChild(td);
+		table.appendChild(tr);
+		
+		editBox.appendChild(table);
+		let li = document.createElement("li");
+		li.appendChild(editBox);
+		return li;
+	}
+	function init(){
+		list = document.getElementById("list");
+		getData();
+		window.addEventListener('wheel', function(e){smoothScroll(e)});
+	}
+	function showAll(){
+		while(list.firstChild){
+			list.removeChild(list.firstChild);
+		}
+		for(let i=0; i<data.items.length; i++){
+			if(filter(data.items[i])) list.appendChild(createLi(data.items[i]));
+		}
+		document.getElementById("dateButton").classList.remove("selectedGroupButton");
+		document.getElementById("statusButton").classList.remove("selectedGroupButton");
+		document.getElementById("environmentButton").classList.remove("selectedGroupButton");
+		document.getElementById("projectButton").classList.remove("selectedGroupButton");
+	}
+	function groupByDate(){
+		while(list.firstChild){
+			list.removeChild(list.firstChild);
+		}
+		data.items.sort(function compareDate(a,b){
+			return new Date(a.timestamp)>new Date(b.timestamp) ? -1 : new Date(a.timestamp)<new Date(b.timestamp) ? 1 : 0;
+		});
+		let d = "";
+		let header = "";
+		let today = new Date();
+		today.setHours(0,0,0,0);
+		let yesterday = new Date();
+		yesterday.setDate(today.getDate()-1);
+		yesterday.setHours(0,0,0,0);
+		let thisMonday = new Date();
+		thisMonday.setDate(thisMonday.getDate() - (thisMonday.getDay() + 6) % 7);
+		thisMonday.setHours(0,0,0,0);
+		let prevMonday = new Date();
+		prevMonday.setDate(thisMonday.getDate()-1);
+		prevMonday.setDate(prevMonday.getDate() - (prevMonday.getDay() + 6) % 7);
+		prevMonday.setHours(0,0,0,0);
+		let monthAgo = new Date();
+		monthAgo.setDate(today.getDate()-30);
+		monthAgo.setHours(0,0,0,0);
+		for(let i=0; i<data.items.length; i++){
+			if(filter(data.items[i])){
+				let date = new Date(data.items[i].timestamp);
+				date.setHours(0,0,0,0);
+				if(date.valueOf() == today.valueOf()) header = "Today";
+				else if(date.valueOf() == yesterday.valueOf()) header = "Yesterday";
+				else if(date.valueOf() >= thisMonday.valueOf()) header = "This week";
+				else if(date.valueOf() >= prevMonday.valueOf()) header = "Last week";
+				else if(date.valueOf() >= monthAgo.valueOf()) header = "This month";
+				else header = "Older";
+				if(header != d){
+					d = header;
+					list.appendChild(createHeader(d));
+				}
+				list.appendChild(createLi(data.items[i]));
+			}
+		}
+		document.getElementById("dateButton").classList.add("selectedGroupButton");
+		document.getElementById("statusButton").classList.remove("selectedGroupButton");
+		document.getElementById("environmentButton").classList.remove("selectedGroupButton");
+		document.getElementById("projectButton").classList.remove("selectedGroupButton");
+		//saveData();
+	}
+	function groupByStatus(){
+		while(list.firstChild){
+			list.removeChild(list.firstChild);
+		}
+		data.items.sort(function compareStatus(a,b){
+			return statuses[a.status]-statuses[b.status];
+		});
+		let s = "";
+		for(let i=0; i<data.items.length; i++){
+			if(filter(data.items[i])){
+				if(data.items[i].status != s){
+					s = data.items[i].status;
+					list.appendChild(createHeader(s.replace("_", " ")));
+				}
+				list.appendChild(createLi(data.items[i]));
+			}
+		}
+		document.getElementById("dateButton").classList.remove("selectedGroupButton");
+		document.getElementById("statusButton").classList.add("selectedGroupButton");
+		document.getElementById("environmentButton").classList.remove("selectedGroupButton");
+		document.getElementById("projectButton").classList.remove("selectedGroupButton");
+		//saveData();
+	}
+	function groupByEnvironment(){
+		while(list.firstChild){
+			list.removeChild(list.firstChild);
+		}
+		data.items.sort(function compareStatus(a,b){
+			return environments[a.environment.split(">")[0]]-environments[b.environment.split(">")[0]];
+		});
+		let e = "";
+		for(let i=0; i<data.items.length; i++){
+			if(filter(data.items[i])){
+				if(data.items[i].environment.split(">")[0] != e){
+					e = data.items[i].environment.split(">")[0];
+					list.appendChild(createHeader(e.toUpperCase()));
+				}
+				list.appendChild(createLi(data.items[i]));
+			}
+		}
+		document.getElementById("dateButton").classList.remove("selectedGroupButton");
+		document.getElementById("statusButton").classList.remove("selectedGroupButton");
+		document.getElementById("environmentButton").classList.add("selectedGroupButton");
+		document.getElementById("projectButton").classList.remove("selectedGroupButton");
+		//saveData();
+	}
+	function groupByProject(){
+		while(list.firstChild){
+			list.removeChild(list.firstChild);
+		}
+		data.items.sort(function compareProject(a,b){
+			return a.project.localeCompare(b.project);
+		});
+		let p = "";
+		for(let i=0; i<data.items.length; i++){
+			if(filter(data.items[i])){
+				if(data.items[i].project != p){
+					p = data.items[i].project;
+					list.appendChild(createHeader(p));
+				}
+				list.appendChild(createLi(data.items[i]));
+			}
+		}
+		document.getElementById("dateButton").classList.remove("selectedGroupButton");
+		document.getElementById("statusButton").classList.remove("selectedGroupButton");
+		document.getElementById("environmentButton").classList.remove("selectedGroupButton");
+		document.getElementById("projectButton").classList.add("selectedGroupButton");
+		//saveData();
+	}
+	function groupBySelected(){
+		if(document.getElementById("dateButton").classList.contains("selectedGroupButton")) groupByDate();
+		else if(document.getElementById("statusButton").classList.contains("selectedGroupButton")) groupByStatus();
+		else if(document.getElementById("environmentButton").classList.contains("selectedGroupButton")) groupByEnvironment();
+		else if(document.getElementById("projectButton").classList.contains("selectedGroupButton")) groupByProject();
+	}
+	function newItem(){
+		let li = createEditBox(null, null, null, null, null, null, null, null);
+		list.insertBefore(li, list.firstChild);
+		li.childNodes[0].childNodes[0].style.visibility = "visible";
+		scrollToTop();
+	}
+	function edit(id, listIndex){
+		let index;
+		for(let i=0; i<data.items.length; i++){
+			if(data.items[i].id == id){
+				index = i;
+			}
+		}
+		let li = createEditBox(data.items[index].id, data.items[index].title, data.items[index].project, data.items[index].status, data.items[index].environment, data.items[index].link, data.items[index].notes, data.items[index].timestamp);
+		
+		let liToRemove = list.childNodes[listIndex];
+		list.insertBefore(li, liToRemove);
+		let targetHeight = li.childNodes[0].offsetHeight;
+		li.childNodes[0].style.maxHeight = liToRemove.childNodes[0].offsetHeight - 26;
+		list.removeChild(liToRemove);
+		clearInterval(editAnimation);
+		editAnimation = setInterval(function(){
+			li.childNodes[0].style.maxHeight = parseInt(li.childNodes[0].style.maxHeight) + 4;
+			if(parseInt(li.childNodes[0].style.maxHeight) >= targetHeight){
+				li.childNodes[0].childNodes[0].style.maxHeight = null;
+				li.childNodes[0].childNodes[0].style.visibility = "visible";
+				clearInterval(editAnimation);
+				return;
+			}
+		}, 1);
+	}
+	function closeEditBox(event){
+		groupBySelected();
+		event.stopPropagation();
+	}
+	function addItem(id){
+		if(id == null){
+			var id = newId();
+		}
+		else removeItem(id);
+		let title = document.getElementById("titleInput").value;
+		let project = document.getElementById("projectInput").value;
+		let status = document.getElementById("statusSelect").options[document.getElementById("statusSelect").selectedIndex].value;
+		let environment = document.getElementById("environmentSelect").options[document.getElementById("environmentSelect").selectedIndex].value;
+		let link = document.getElementById("linkInput").value;
+		let notes = document.getElementById("notesInput").value;
+		let timestamp = new Date().getTime();
+		let item = {"id":id, "title":title, "project":project, "status":status, "environment":environment, "link":link, "notes":notes, "timestamp":timestamp};
+		data.items.push(item);
+	}
+	function removeItem(id){
+		for(let i=0; i<data.items.length; i++){
+			if(data.items[i].id == id){
+				data.items.splice(i, 1);
+				return;
+			}
+		}
+	}
+	function newId(){
+		let id = 0;
+		for(let i=0; i<data.items.length; i++){
+			if(data.items[i].id >= id) id = data.items[i].id+1;
+		}
+		return id;
+	}
+	function toggleShowDone(){
+		if(showDone){
+			document.getElementById("doneButton").classList.remove("selectedDoneButton");
+		}
+		else {
+			document.getElementById("doneButton").classList.add("selectedDoneButton");
+		}
+		showDone = !showDone;
+		groupBySelected();
+	}
+	function updateFilterString(){
+		filterString = document.getElementById("searchInput").value;
+		groupBySelected();
+	}
+	function filter(item){
+		return item.title.toLowerCase().includes(filterString.toLowerCase()) && (showDone || item.status != "done");
+	}
+	function saveData(){
+		//localStorage.setItem("data", JSON.stringify(data));
+		dbRef.child("data").set(data);
+	}
+	function getData(){
+		//data = localStorage.getItem("data");
+		//return JSON.parse(data);
+		dbRef.once("value", function(snapshot) {
+			snapshot.forEach(function(child){
+				data = child.val();
+				groupByDate();
+			});
+		});
+	}
+	function doNothing(event){
+		event.stopPropagation();
+	}
+	function smoothScroll(event){
+		event.preventDefault();
+		clearInterval(scrollAnimation);
+		let amount = 50;
+		let step = event.deltaY > 0 ? 1 : -1;
+		scrollAnimation = setInterval(function(){
+			if(amount-- == 0){
+				clearInterval(scrollAnimation);
+				return;
+			}
+			list.scrollTop = list.scrollTop + step * 4;
+		}, 1);
+	}
+	function scrollToTop(){
+		list.scrollTop = 0;
+	}
+
+</script>
+
+<body onload="init();">
+	<div id="bar" class="bar">
+		<img class="barLogo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAVmSURBVHhe7Zrdi1VVGMZnxCk/yJAsuhJ00mjIuhODushoIigmu6hMTCoCI2KsrOhGSbIsguov6CJCoouwC7MPMSGQvq4SgigqSctS8CtNc6Z+77ues+bsvc/p7Cmavc6Z/YOXvZ/1vGvtZzEzZ+9zzvTV1NTU1FTE+Pj4DdR1ktMLNv4gdY46Q92l4ekBG970VxNoY4Ps3oaNPqd9F8B7Um29CRvcrL22hZ5RtfcWbOxp7THCmL0GnJN00MZ6TesN2NAj2l+EsRPUsOqEhh20sU7Tuxs2cjt1Xntz0CepFWqxnhU2JttBn6VWqqU7YQPL2MuxsKUAY79TN6olYmPmqc1B/0pdoZbugvyzCL8/bCWANkbUUoCWO6whdAeQn3MYUEv3QPCXwhYmYGyz7LbQ86zaI2XmJQWBl1P5v/v3OPSrpS30zKD3Q58k0Ha3uFYt6UPYj5TdQdur/ELZHaF/EXUqzA6gd8pOG4Jeo8wRxib9cMOcjZoeYewq2elCyBeV10Ef5HCB7NIwbzb1S1glgN4qO10I+ZnyOuiNsiYNc5/RMg56n6x0IeQR5XXQi2RFGLYXuhHqNdUIY4UXSMaX+CIC/ZusdCFk5j4OmXs4eg4t7wdrAsbsLpHvHXBT0DMmK13ImX/yu0SWgy48HzTA26Q2B32prAbHZKULoQ8orIPOPMqij8oqgHdEbQ56qSwH/aOsdCHkPuV10PG5n/O5Gm4LPbPVbv03a9ixtWWlCyHfUl4H/ZAsB223xZbg/aQ2B71eloPeLitdCPmC8jqmZTnowgNOA7zH1eagM68X+bWShJCrlddB75DlMNTP2Bbqz9DhPWPUy5xmboWM7QwdAfTdstKFkEPK66APyMrAuD3v368qPCsYjB/SMg56SFa6kHMmQf8IkQPozK2wDMy5TNMdrTlTdtoQ9ssQO4C+SVZpmDOs6Q2+kJU+hH9doR30E7JKw5ynNN2xNWWlDUGHqK+U20G/Ibs0zNmu6Y6taWvLThMCrqPOKHOEsf1qKQ1zvtb0iK1N3aeWtCDYA1T+jZDD8HnqIrV2hCkX0z8WZmexa8BataYBga6kCj/5ZvCH1d4Rem/VtJbgn6aWqL16CPOmsjlo++z/U0kHvUXtHaE3/wXqx7amzh30pF9X/hcIMpfK/PTRq6m1kg56t6Z0hN49muagV9makg76NIc5mlIdhLjeEwmC/cDBHncHw0gAbT/Bjg8y9Ayot5nLKVvT1o6gq//vEkKsUh4HHT++5vxnDTvo5bLaYj1qd9DfyzIv/97gNlnVQYjMCxb6E1nmva1hB515t9cK61G7g45vgW1tDTvoW2RVByHyv+rHOcyQ91gY/fewhn+nwKl9kGprN7PYvMohWOZjLvRSyp4I7YvN/4StobXyH48d1eWrhzAfKJeDfpf6x+eCyWBr2ZqSjl1Tl68ewjyvXFOGXVOXrx7C3KlcLcHfQ7X80KMV1mtzNL0ldk21Vw95FoZYWQh5inqU045fi+exOTbX1vDFipT+tnlKIOhhBXPQe6lB2ebnv+6eJ8u8eRp2rFeWeYPUXlkO+rDsdCDULoWz9wGjnPqtsAFj35jfAL1Mlnn2v0QR65XlMGS3wFHKnxA57pKVDuTaRrDdHFvem/F2WPgG6PhfoZxnPipHvyMrA9ZiXWObhtKBUAuotn/rBH8YP4L+jrpQ9a2GHevVtALY/dQCye7BQrMxewcXQW+1knTU030bLAObezVsM4B2JB3kK2rvPdjffDaYeYfYDJ59ETJf7b0Jm1xJnQ1bnsDGzFNbb8NG11DxV9/OYY3s6QEbvoeyZwarezU8vWDjV1tJ1tTU1NRMLX19fwPv/wTeGKur5QAAAABJRU5ErkJggg==">
+		<p class="barTitle">devIssues</p>
+		<div class="groupDiv">
+			<input id="dateButton" class="groupButton" type="button" value="DATE" onclick="groupByDate(); scrollToTop();">
+			<input id="statusButton" class="groupButton" type="button" value="STATUS" onclick="groupByStatus(); scrollToTop();">
+			<br>
+			<input id="environmentButton" class="groupButton" type="button" value="ENVIRONMENT" onclick="groupByEnvironment(); scrollToTop();">
+			<input id="projectButton" class="groupButton" type="button" value="PROJECT" onclick="groupByProject(); scrollToTop();">
+		</div>
+		<div class="searchDiv">
+			<input id="searchInput" class="searchInput" placeholder="SEARCH" oninput="updateFilterString(); scrollToTop();">
+			<input type="button" id="doneButton" class="doneButton selectedDoneButton" value="DISPLAY DONE" onclick="toggleShowDone(); scrollToTop();">
+			<input type="button" class="newButton" value="NEW ISSUE" onclick="newItem();">
+		</div>
+	</div>
+	<ul id="list" class="list"/>
+</body>

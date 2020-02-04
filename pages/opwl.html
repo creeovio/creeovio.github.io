@@ -1,0 +1,454 @@
+<head>
+	<title>OnePieceWatchlist</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+	<meta name="theme-color" content="#455a64">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/5.3.0/firebase.js"></script>
+	<link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+	<link rel="icon" href="https://ya-webdesign.com/images600_/logos-transparent-one-piece-19.png">
+</head>
+
+<style>
+	html {
+		height: 100%;
+		margin: 0px;
+	}
+	body {
+		width: 424px;
+		height: 100%;
+		margin: 0px;
+		padding-top: 56px;
+		background-color: rgba(0,0,0,0.1);
+		font-family: 'Roboto', sans-serif;
+		color: rgba(0,0,0,0.8);
+		cursor: default;
+		transition: padding-top 0.2s ease-out;
+	}
+	body.playing {
+		padding-top: 238px;
+		transition: padding-top 0.2s ease-out;
+		transition-delay: 0.2s;
+	}
+	 #appbar {
+		position: fixed;
+		height: 56px;
+		top: 0px;
+		left: 0px;
+		right: 0px;
+		z-index: 1;
+		background-color: #455a64;
+		box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+		transition: height 0.2s ease-out;
+	 }
+	 body.playing>#appbar {
+		height: 238px;
+		transition: height 0.2s ease-out;
+		transition-delay: 0.2s;
+	 }
+	#title {
+		display: inline-block;
+		opacity: 1;
+		padding: 12px;
+		vertical-align: middle;
+		cursor: default;
+		transition: opacity 0.2s ease-out;
+		transition-delay: 0.3s;
+	}
+	#title>img {
+		height: 32px;
+		filter: grayscale(1) brightness(0) invert(1);
+	}
+	body.playing>#appbar>#title {
+		opacity: 0;
+		transition: opacity 0.2s ease-out;
+	}
+	#loader {
+		display: inline-block;
+		border: 2px solid rgba(255,255,255,0.2);
+		border-top: 2px solid white;
+		border-radius: 50%;
+		/*margin: 16px 0px 16px 0px;*/
+		margin-left: 260px;
+		width: 20px;
+		height: 20px;
+		animation: spin 1s linear infinite;
+		vertical-align: middle;
+	}
+	#video {
+		position: fixed;
+		top: 0px;
+		left: 0px;
+		background-color: black;
+		height: 0px;
+		overflow: hidden;
+		transition: height 0.2s ease-out;
+	}
+	body.playing>#appbar>#video {
+		height: 238px;
+		transition: height 0.2s ease-out;
+		transition-delay: 0.2s;
+	}
+	#filter {
+		display: inline-block;
+		padding: 16px 20px 16px 20px;
+		opacity: 1;
+		font-size: 14px;
+		font-weight: bold;
+		color: #455a64;
+		transition: opacity 0.2s;
+		transition-delay: 1s;
+	}
+	#close {
+		float: right;
+		opacity: 0;
+		display: inline-block;
+		padding: 16px 20px 16px 20px;
+		font-size: 14px;
+		font-weight: bold;
+		color: #455a64;
+	}
+	body.playing>#close {
+		opacity: 1;
+		transition: opacity 0.2s;
+		transition-delay: 0.4s;
+	}
+	#filterContent {
+		padding: 0px 20px;
+		max-height: 0px;
+		overflow: hidden;
+		font-size: 14px;
+		font-weight: bold;
+		color: rgba(0,0,0,0.4);
+		transition: max-height 0.2s ease-out;
+	}
+	span.season {
+		display: block;
+		padding: 8px 0px 0px 0px;
+	}
+	#customFilter {
+		padding-bottom: 16px;
+	}
+	#customFilter>input {
+		width: 3em;
+		background-color: transparent;
+		border: 1px solid rgba(0,0,0,0.1);
+		text-align: center;
+		font-weight: bold;
+		color: rgba(0,0,0,0.4);
+	}
+	table.list {
+		margin: 0px;
+		border-collapse: collapse;
+		background-color: white;
+		position: relative;
+		animation: translateVertical 1s;
+		animation-timing-function; ease-out;
+	}
+	td.episode {
+		vertical-align: middle;
+		/*height: 84px;*/
+		padding: 0px;
+		transition: 0.4s;
+	}
+	tr:last-child>td.episode {
+		padding-bottom: 48px;
+	}
+	td.selected {
+		background-color: #ECEFF1;
+	}
+	div.top {
+		padding: 12px 20px 12px 20px;
+	}
+	span.title {
+		font-size: 18px;
+	}
+	span.watched {
+		text-decoration: line-through;
+	}
+	div.bottom {
+		max-height: 0px;
+		overflow: hidden;
+		transition: max-height 0.2s ease-out;
+	}
+	div.content {
+		padding: 0px 20px 20px 20px;
+		font-size: 12px;
+		color: rgba(0,0,0,0.5);
+	}
+	span.number {
+		font-weight: bold;
+	}
+	span.date {
+		margin-left: 12px;
+	}
+	span.type {
+		font-weight: bold;
+		margin-left: 12px;
+	}
+	span.type.normal {
+		display: none;
+	}
+	span.type.filler {
+		color: #2196f3;
+	}
+	span.type.special {
+		color: #ff9800;
+	}
+	span.type.recap {
+		color: #4caf50;
+	}
+	span.description {
+		margin: 4px 0px 16px 0px;
+		display: block;
+		color: rgba(0,0,0,0.6);
+	}
+	span.button {
+		border-radius: 3px;
+		padding: 4px 12px;
+		margin-right: 20px;
+		color: white;
+		cursor: hand;
+	}
+	span.button:last-child {
+		margin-right: 0px;
+	}
+	span.watch {
+		background-color: #4caf50;
+	}
+	span.mirror {
+		background-color: rgba(0,0,0,0.3);
+	}
+	span.mark {
+		background-color: rgba(0,0,0,0.3);
+	}
+	@keyframes translateVertical { 
+		0% { bottom: -100px; opacity: 0; } 
+		100% { bottom: 0; opacity: 1; }
+	}
+	@keyframes spin {
+		0% { transform: rotate(0deg); }
+		100% { transform: rotate(360deg); }
+	}
+</style>
+
+<script>
+	const videoSrcTemplate = "https://www.animeunityserver65.cloud/DDL/Anime/OnePiece/OnePiece_Ep_XXX_SUB_ITA.mp4";
+	const videoSrc2Template = "https://www.animelove.it/anime-video/streaming/One-Piece/XXX/";
+	const linkTemplate = "https://www.animehdita.org/host/srv3.php?s=65&v=OnePiece/OnePiece_Ep_XXX_SUB_ITA";
+	const mirrorTemplate = "https://www.animelove.it/anime/streaming/One-Piece/XXX";
+	const firebaseConfig = {
+		apiKey: "AIzaSyA2syt4yugDCTNHcVn2OGJHAJOvRfUSTFs",
+		authDomain: "misc-5358e.firebaseapp.com",
+		databaseURL: "https://misc-5358e.firebaseio.com",
+		projectId: "misc-5358e",
+		storageBucket: "misc-5358e.appspot.com",
+		messagingSenderId: "699031327147",
+		appId: "1:699031327147:web:44e9e1c50861d8747e42ee"
+	};
+	
+	// firebase vars
+	firebase.initializeApp(firebaseConfig);
+	var dbRef = firebase.app().database().ref();
+	var opwl;
+	
+	function init() {
+		window.onbeforeunload = null; //function(){return "";}
+		getOpwl();
+	}
+	
+	function getOpwl() {
+		dbRef.once("value", function(snapshot) {
+			snapshot.forEach(function(child){
+				if(child.key == "opwl") {
+					opwl = child.val();
+				}
+			});
+			populateFilter();
+			refreshView();
+		});
+	}
+	
+	function populateFilter() {
+		document.querySelector("#filter").removeAttribute("style");
+		let filterContent = document.getElementById("filterContent");
+		let spanCustomFilter = document.getElementById("customFilter");
+		for(let i=0; i<opwl.seasons.length; i++) {
+			let spanSeason = document.createElement("span");
+			spanSeason.classList.add("season");
+			spanSeason.setAttribute("onclick", "applyFilter(" + opwl.seasons[i].from + ", " + opwl.seasons[i].to + "); toggleFilter();");
+			spanSeason.innerHTML = opwl.seasons[i].name;
+			filterContent.insertBefore(spanSeason, spanCustomFilter);
+		}
+	}
+	
+	function refreshView() {
+		document.querySelector("#loader").style.display = "none";
+		document.querySelectorAll("#list>tr").forEach(e => e.parentNode.removeChild(e));
+		document.getElementById("customFrom").value = opwl.custom.from;
+		document.getElementById("customTo").value = opwl.custom.to;
+		var list = document.getElementById("list");
+		list.classList.add("list");
+		for(let i=opwl.custom.from-1; i<opwl.episodes.length && i<=opwl.custom.to-1; i++) {
+			let tr = document.createElement("tr");
+			let td = document.createElement("td");
+			td.classList.add("episode");
+			td.setAttribute("onclick", "select(this)");
+			//divTop
+			let divTop = document.createElement("div");
+			divTop.classList.add("top");
+			let spanTitle = document.createElement("span");
+			spanTitle.classList.add("title");
+			if(opwl.episodes[i].watched) spanTitle.classList.add("watched");
+			spanTitle.innerHTML = opwl.episodes[i].title;
+			divTop.appendChild(spanTitle);
+			td.appendChild(divTop);
+			//divBottom
+			let divBottom = document.createElement("div");
+			divBottom.classList.add("bottom");
+			let divContent = document.createElement("div");
+			divContent.classList.add("content");
+			let spanNumber = document.createElement("span");
+			spanNumber.classList.add("number");
+			spanNumber.innerHTML = "Episode " + opwl.episodes[i].number;
+			divContent.appendChild(spanNumber);
+			let spanDate = document.createElement("span");
+			spanDate.classList.add("date");
+			spanDate.innerHTML = "Aired " + opwl.episodes[i].date;
+			divContent.appendChild(spanDate);
+			let spanType = document.createElement("span");
+			spanType.classList.add("type");
+			spanType.classList.add(opwl.episodes[i].type);
+			spanType.innerHTML = opwl.episodes[i].type.toUpperCase();
+			divContent.appendChild(spanType);
+			let spanDescription = document.createElement("span");
+			spanDescription.classList.add("description");
+			spanDescription.innerHTML = opwl.episodes[i].description;
+			divContent.appendChild(spanDescription);
+			let spanWatch1 = document.createElement("span");
+			spanWatch1.classList.add("watch");
+			spanWatch1.classList.add("button");
+			spanWatch1.innerHTML = "PLAY";
+			spanWatch1.setAttribute("onclick", "event.stopPropagation(); openLink(1, this, "+opwl.episodes[i].number+")");
+			divContent.appendChild(spanWatch1);
+			let spanWatch2 = document.createElement("span");
+			spanWatch2.classList.add("watch");
+			spanWatch2.classList.add("button");
+			spanWatch2.innerHTML = "MIRROR";
+			spanWatch2.setAttribute("onclick", "event.stopPropagation(); openLink(2, this, "+opwl.episodes[i].number+")");
+			divContent.appendChild(spanWatch2);
+			let spanMirror = document.createElement("span");
+			spanMirror.classList.add("mirror");
+			spanMirror.classList.add("button");
+			spanMirror.innerHTML = "EXTERNAL LINK";
+			spanMirror.setAttribute("onclick", "event.stopPropagation(); openMirror(this, "+opwl.episodes[i].number+")");
+			divContent.appendChild(spanMirror);
+			let spanMark = document.createElement("span");
+			spanMark.classList.add("mark");
+			spanMark.classList.add("button");
+			spanMark.innerHTML = (opwl.episodes[i].watched ? "UN" : "") + "CHECK";
+			spanMark.setAttribute("onclick", "event.stopPropagation(); mark(this, "+opwl.episodes[i].number+", "+!(opwl.episodes[i].watched)+")");
+			divContent.appendChild(spanMark);
+			divBottom.appendChild(divContent);
+			td.appendChild(divBottom);
+			tr.appendChild(td);
+			list.appendChild(tr);
+		}
+	}
+	
+	function openLink(n, element, number) {
+		mark(element, number, true);
+		//window.open(linkTemplate.replace("XXX", number));
+		if(n==1) document.querySelector("#source").setAttribute("src", videoSrcTemplate.replace("XXX", number));
+		else document.querySelector("#source").setAttribute("src", videoSrc2Template.replace("XXX", number));
+		document.querySelector("body").classList.add("playing");
+		let video = document.querySelector("#video");
+		video.load();
+		video.play();
+	}
+	
+	function fullscreen() {
+		document.getElementById('video').requestFullscreen();
+	}
+	
+	function closeVideo() {
+		document.querySelector("#video").pause();
+		document.querySelector("#source").setAttribute("src", "");
+		document.querySelector("#video").load();
+		document.querySelector("body").classList.remove("playing");
+	}
+	
+	function openMirror(element, number) {
+		mark(element, number, true);
+		window.open(mirrorTemplate.replace("XXX", number));
+	}
+	
+	function mark(element, number, watched) {
+		setWatched(number, watched);
+		if(watched) {
+			element.parentElement.parentElement.parentElement.querySelector("span.title").classList.add("watched");
+		} else element.parentElement.parentElement.parentElement.querySelector("span.title").classList.remove("watched");
+		element.parentElement.querySelector("span.mark").innerHTML = (watched ? "UN" : "") + "CHECK";
+		element.parentElement.querySelector("span.mark").setAttribute("onclick", "event.stopPropagation(); mark(this, "+number+", "+!watched+")");
+	}
+	
+	function select(element) {
+		let selected = element.classList.contains("selected");
+		document.querySelectorAll("td.episode").forEach(td => {
+			td.classList.remove("selected");
+		});
+		document.querySelectorAll("div.bottom").forEach(div => {
+			div.style.maxHeight = null;
+		});
+		if(!selected) {
+			element.classList.add("selected");
+			let div = element.querySelector("div.bottom");
+			div.style.maxHeight = div.scrollHeight + "px";
+		}
+	}
+	
+	function toggleFilter() {
+		let filterContent = document.querySelector("#filterContent");
+		if(filterContent.style.maxHeight) filterContent.style.maxHeight = null;
+		else filterContent.style.maxHeight = filterContent.scrollHeight + "px";
+	}
+	
+	function applyCustomFilter() {
+		applyFilter(parseInt(document.querySelector("#customFrom").value), parseInt(document.querySelector("#customTo").value));
+	}
+	
+	function applyFilter(from, to) {
+		opwl.custom.from = from;
+		opwl.custom.to = to;
+		saveFilter();
+		refreshView();
+	}
+	
+	function setWatched(number, watched) {
+		opwl.episodes[number-1].watched = watched;
+		dbRef.child("opwl").child("episodes").child(number-1).child("watched").set(watched);
+	}
+	
+	function saveFilter() {;
+		dbRef.child("opwl").child("custom").set(opwl.custom);
+	}
+</script>
+
+<body onload="init();">
+	<div id="appbar">
+		<div id="title">
+			<img src="https://www.iluoghidellarete.it/images/One_Piece_Logosvg.png">
+		</div>
+		<div id="loader"></div>
+		<video id="video" width="424" controls autoplay controlsList="nodownload" onclick="fullscreen()" ><source id="source" src="" type="video/mp4"></video>
+	</div>
+	<div id="filter" style="opacity: 0;" onclick="toggleFilter()">FILTER
+	</div><div id="close" onclick="closeVideo()">CLOSE VIDEO</div>
+	<div id="filterContent">
+		<span id="customFilter" class="season">Custom:&nbsp;
+			<input type="number" min="1" step="1" id="customFrom" onclick="event.stopPropagation()">&nbsp;to&nbsp;
+			<input type="number" min="1" step="1" id="customTo" onclick="event.stopPropagation()">&nbsp;
+			<span onclick="applyCustomFilter()">APPLY</span>
+		</span>
+	</div>
+	<table id="list"></table>
+</body>

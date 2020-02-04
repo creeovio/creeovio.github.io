@@ -1,0 +1,408 @@
+<style>
+	body{
+		margin: 0;
+		padding: 0;
+	}
+	.container{
+		width: 100%;
+		height: 100%;
+		padding: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		outline: none;
+		background-color: white;
+	}
+	.canvas{
+		display: block;
+	}
+
+</style>
+
+<script>
+
+	var container;
+	var canvas;
+	var context;
+	const canvasRatio = 16/9;
+	const pi = Math.PI;
+	const tpi = pi*2;
+	const colors = {background:"white", lines:"rgba(0,0,0,0.4)", highlighted:"yellow", selected:"cyan", faceDown:"darkgrey", faceUp:"white"};
+	const layout = {card:{}, stock:{}, waste:{}, tableau:{}, foundation:{}};
+	const values = ["0", "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+	const seeds = ["♦", "♣", "♥", "♠"];
+	const keys = [];
+	const deck = [
+		{value:1, seed:0}, {value:2, seed:0}, {value:3, seed:0}, {value:4, seed:0}, {value:5, seed:0}, {value:6, seed:0}, 
+		{value:7, seed:0}, {value:8, seed:0}, {value:9, seed:0}, {value:10, seed:0}, {value:11, seed:0}, {value:12, seed:0}, {value:13, seed:0}, 
+		{value:1, seed:1}, {value:2, seed:1}, {value:3, seed:1}, {value:4, seed:1}, {value:5, seed:1}, {value:6, seed:1}, 
+		{value:7, seed:1}, {value:8, seed:1}, {value:9, seed:1}, {value:10, seed:1}, {value:11, seed:1}, {value:12, seed:1}, {value:13, seed:1}, 
+		{value:1, seed:2}, {value:2, seed:2}, {value:3, seed:2}, {value:4, seed:2}, {value:5, seed:2}, {value:6, seed:2}, 
+		{value:7, seed:2}, {value:8, seed:2}, {value:9, seed:2}, {value:10, seed:2}, {value:11, seed:2}, {value:12, seed:2}, {value:13, seed:2}, 
+		{value:1, seed:3}, {value:2, seed:3}, {value:3, seed:3}, {value:4, seed:3}, {value:5, seed:3}, {value:6, seed:3}, 
+		{value:7, seed:3}, {value:8, seed:3}, {value:9, seed:3}, {value:10, seed:3}, {value:11, seed:3}, {value:12, seed:3}, {value:13, seed:3}
+		];
+	const stock = [];
+	const waste = [];
+	const foundation = []; foundation[0] = []; foundation[1] = []; foundation[2] = []; foundation[3] = [];
+	const tableau = []; tableau[0] = []; tableau[1] = []; tableau[2] = []; tableau[3] = []; tableau[4] = []; tableau[5] = []; tableau[6] = []; 
+	var selected = null;
+	var highlighted = null;
+	const stockToWaste = 3;
+	
+	function init(){
+		container = document.getElementById("container");
+		canvas = document.createElement("canvas");
+		canvas.setAttribute("class", "canvas");
+		resizeCanvas();
+		container.appendChild(canvas);
+		context = canvas.getContext("2d");
+		window.addEventListener('resize', function(event){
+			resizeCanvas();
+			draw();
+		});
+		//init tableau
+		shuffle(deck);
+		for(let i=0; i<7; i++){
+			for(let j=i; j<7; j++){
+				move(deck, tableau[j], j==i);
+			}
+		}
+		//init stock
+		while(deck.length>0){
+			move(deck, stock, false);
+		}
+		draw();
+		container.focus();
+	}
+	
+	function resizeCanvas(){
+		canvas.width = window.innerWidth;
+		canvas.height = canvas.width/canvasRatio;
+		canvas.setAttribute("width", canvas.width);
+		canvas.setAttribute("height", canvas.height);
+		layout.card.width = canvas.width/14;
+		layout.card.height = canvas.width/9;
+		layout.margin = (canvas.width - layout.card.width*7)/8;
+		layout.stock.x = layout.margin;
+		layout.stock.y = layout.margin;
+		layout.waste.x = layout.margin*2 + layout.card.width;
+		layout.waste.y = layout.margin;
+		layout.waste.spacing = layout.card.width/3;
+		layout.foundation.x = canvas.width - layout.margin*4 - layout.card.width*4;
+		layout.foundation.y = layout.margin;
+		layout.tableau.x = layout.margin;
+		layout.tableau.y = layout.margin*2 + layout.card.height;
+		layout.tableau.spacing = (canvas.height - layout.tableau.y - layout.card.height)/8;
+	}
+	
+	function draw(){
+		context.clearRect(0, 0, canvas.width, canvas.height);
+		//draw background
+		context.fillStyle = colors.background;
+		context.fillRect(0, 0, canvas.width, canvas.height);
+		context.strokeStyle = colors.lines;
+		//draw lines
+		context.lineWidth = 1;
+		context.strokeRect(layout.stock.x, layout.stock.y, layout.card.width, layout.card.height);
+		context.strokeRect(layout.waste.x, layout.waste.y, layout.card.width + layout.waste.spacing*(stockToWaste-1), layout.card.height);
+		for(let i=0; i<4; i++){
+			let x = layout.foundation.x + (layout.margin+layout.card.width)*i;
+			context.strokeRect(x, layout.foundation.y, layout.card.width, layout.card.height);
+			context.fillStyle = colors.lines;
+			context.font = layout.card.width+"px Comic Sans MS";
+			context.textAlign = "center";
+			context.textBaseline = "middle";
+			context.fillText(seeds[i], x+layout.card.width/2, layout.foundation.y+layout.card.height/2);
+			}
+		for(let i=0; i<7; i++) context.strokeRect(layout.tableau.x + (layout.margin+layout.card.width)*i, layout.tableau.y, layout.card.width, layout.card.height);
+		//draw stock
+		context.fillStyle = colors.faceDown;
+		if(stock.length>0){
+			drawCard(layout.stock.x, layout.stock.y, stock.length, null, false);
+		}
+		//draw waste
+		if(waste.length>0) for(let i=Math.max(waste.length-stockToWaste, 0); i<waste.length; i++){
+			drawCard(layout.waste.x + layout.waste.spacing*(waste.length-1-i), layout.waste.y, waste[i].value, waste[i].seed, true);
+		}
+		//draw foundation
+		for(let i=0; i<4; i++){
+			if(foundation[i].length>0){
+				drawCard(layout.foundation.x + (layout.margin+layout.card.width)*i, layout.foundation.y, foundation[i][foundation[i].length-1].value, foundation[i][foundation[i].length-1].seed, true);
+			}
+		}
+		//draw tableau
+		for(let i=0; i<tableau.length; i++){
+			if(tableau[i].length>0){
+				let k=0;
+				for(let j=0; j<tableau[i].length; j++){
+					if(!tableau[i][j].faceUp && (j==tableau[i].length-1 || tableau[i][j+1].faceUp)){
+						drawCard(layout.tableau.x + (layout.card.width+layout.margin)*i, layout.tableau.y, j+1, null, false);
+						k++;
+					}
+					if(tableau[i][j].faceUp){
+						drawCard(layout.tableau.x + (layout.card.width+layout.margin)*i, layout.tableau.y + (layout.tableau.spacing)*k, tableau[i][j].value, tableau[i][j].seed, true);
+						k++;
+					}
+				}
+			}
+		}
+		//draw highlighted
+		context.strokeStyle = colors.highlighted;
+		context.lineWidth = 3;
+		drawSelectionLine(highlighted);
+		//draw selected
+		context.strokeStyle = colors.selected;
+		context.lineWidth = 3;
+		drawSelectionLine(selected);
+	}
+	
+	function drawCard(x, y, value, seed, faceUp){
+		context.fillStyle = faceUp ? colors.faceUp : colors.faceDown;
+		context.fillRect(x, y, layout.card.width, layout.card.height);
+		context.strokeStyle = "black";
+		context.strokeRect(x, y, layout.card.width, layout.card.height);
+		context.fillStyle = !faceUp ? "white" : (seed%2==0 ? "red" : "black");
+		context.font = layout.card.width/2.5+"px Comic Sans MS";
+		context.textAlign = faceUp ? "right" : "left";
+		context.textBaseline = "top";
+		if(faceUp){
+			context.fillText(seeds[seed]+" "+values[value], x+layout.card.width*0.9, y); 
+			context.fillText(seeds[seed], x+layout.card.width*0.9, y+layout.card.height*0.3); 
+		}
+		else context.fillText(value, x+layout.card.width*0.1, y);
+	}
+	
+	function drawSelectionLine(item){
+		if(item == stock){
+			context.strokeRect(layout.stock.x, layout.stock.y, layout.card.width, layout.card.height);
+		}
+		else if(item == waste){
+			context.strokeRect(layout.waste.x, layout.waste.y, layout.card.width + layout.waste.spacing*(stockToWaste-1), layout.card.height);
+		}
+		else if(tableau.includes(item)){
+			let faceup = 0, facedown = 0;
+			for(let i=0; i<item.length; i++){
+				if(item[i].faceUp) faceup++;
+				else facedown = 1;
+			}
+			context.strokeRect(layout.tableau.x + (layout.card.width+layout.margin)*tableau.indexOf(item), layout.tableau.y, layout.card.width, layout.card.height + (layout.tableau.spacing)*Math.max(0,faceup+facedown-1));
+		}
+		else if(foundation.includes(item)){
+			context.strokeRect(layout.foundation.x + (layout.card.width+layout.margin)*foundation.indexOf(item), layout.foundation.y, layout.card.width, layout.card.height);
+		}
+	}
+	
+	function keydown(event){
+		let key = event.keyCode;
+		//left
+		if(key == 37){
+			if(highlighted == null) highlighted = stock;
+			else if(tableau.includes(highlighted)){
+				highlighted = tableau[(tableau.indexOf(highlighted)+6)%7];
+			}
+			else if(foundation.includes(highlighted)){
+				if(foundation.indexOf(highlighted)>0) highlighted = foundation[foundation.indexOf(highlighted)-1];
+				else highlighted = waste;
+			}
+			else if(highlighted == waste){
+				highlighted = stock;
+			}
+			else if(highlighted == stock){
+				highlighted = foundation[3];
+			}
+		}
+		//right
+		else if(key == 39){
+			if(highlighted == null) highlighted = stock;
+			else if(tableau.includes(highlighted)){
+				highlighted = tableau[(tableau.indexOf(highlighted)+1)%7];
+			}
+			else if(foundation.includes(highlighted)){
+				if(foundation.indexOf(highlighted)<3) highlighted = foundation[foundation.indexOf(highlighted)+1];
+				else highlighted = stock;
+			}
+			else if(highlighted == stock){
+				highlighted = waste;
+			}
+			else if(highlighted == waste){
+				highlighted = foundation[0];
+			}
+		}
+		//up
+		else if(key == 38){
+			if(highlighted == null) highlighted = stock;
+			else if(tableau.includes(highlighted)){
+				let index = tableau.indexOf(highlighted);
+				if(index == 0) highlighted = stock;
+				else if(index == 1) highlighted = waste;
+				else if(index == 2) highlighted = waste;
+				else if(index > 2) highlighted = foundation[index-3];
+			}
+		}
+		//down
+		else if(key == 40){
+			if(highlighted == null) highlighted = stock;
+			else if(highlighted == stock){
+				highlighted = tableau[0];
+			}
+			else if(highlighted == waste){
+				highlighted = tableau[1];
+			}
+			else if(foundation.includes(highlighted)){
+				highlighted = tableau[foundation.indexOf(highlighted)+3];
+			}
+		}
+		//enter
+		else if(key == 13) sendToFoundation();
+		//spacebar
+		else if(key == 32) action(null);
+		else return;
+		draw();
+		event.preventDefault();
+	}
+
+	function leftClick(event){
+		highlighted = null;
+		let rect = canvas.getBoundingClientRect();
+		let x = event.clientX - rect.left;
+		let y = event.clientY - rect.top;
+		if(y >= layout.stock.y && y <= layout.stock.y + layout.card.height){
+			if(x >= layout.stock.x && x <= layout.stock.x + layout.card.width){
+				action(stock);
+			}
+			else if(x >= layout.waste.x && x <= layout.waste.x + layout.card.width + layout.waste.spacing*(stockToWaste-1)){
+				action(waste);
+			}
+			else for(let i=0; i<4; i++){
+				if(x >= layout.foundation.x + i*(layout.card.width + layout.margin) && x <= layout.foundation.x + layout.card.width + i*(layout.card.width + layout.margin)){
+					action(foundation[i]);
+				}
+			}
+		}
+		else if(y >= layout.tableau.y && y<= canvas.height){
+			for(let i=0; i<7; i++){
+				if(x >= layout.tableau.x + i*(layout.card.width + layout.margin) && x <= layout.tableau.x + layout.card.width + i*(layout.card.width + layout.margin)){
+					action(tableau[i]);
+				}
+			}
+		}
+		else selected = null;
+		draw();
+	}
+	
+	function rightClick(){
+		sendToFoundation();
+		draw();
+	}
+	
+	function shuffle(deck){
+		for(let i = deck.length-1; i>0; i--){
+			const j = Math.floor(Math.random()*(i+1));
+			[deck[i], deck[j]] = [deck[j], deck[i]];
+		}
+		return deck;
+	}
+	
+	function action(target){
+		if(target == null) target = highlighted;
+		if(selected == null){
+			if(target == stock){
+				if(stock.length==0){
+					while(waste.length>0){
+						move(waste, stock, false);
+					}
+				}
+				else{
+					let i=0;
+					while(i<stockToWaste && stock.length>0){
+						move(stock, waste, true);
+						i++;
+					}
+				}
+			}
+			else if(target.length == 0) return;
+			else if(tableau.includes(target) && flip(target)) return;
+			else selected = target;
+		}
+		else if(selected == target){
+			selected = null;
+		}
+		else{
+			checkAndMove(selected, target);
+			selected = null;
+		}
+	}
+	
+	function flip(source){
+		if(!tableau.includes(source) || source.length==0 || source[source.length-1].faceUp == true){
+			return false;
+		}
+		source[source.length-1].faceUp = true;
+		return true;
+	}
+	
+	function checkAndMove(source, destination){
+		//illegal moves
+		if(source.length==0 || destination==stock || destination==waste){
+			return false;
+		}
+		let card = source[source.length-1];
+		let destCard = destination.length>0 ? destination[destination.length-1] : null;
+		//check foundation rules
+		if(foundation.includes(destination) && (foundation.indexOf(destination)==card.seed && ((destCard==null && card.value==1) || (destCard!=null && destCard.value==card.value-1)))){
+			move(source, destination, true);
+			return true;
+		}
+		//check tableau rules
+		else if(tableau.includes(destination)){
+			if(tableau.includes(source)){
+				for(let i=source.length-1; i>=0 && source[i].faceUp; i--){
+					if((destCard==null && source[i].value==13) || (destCard!=null && destCard.value==source[i].value+1 && destCard.seed%2!=source[i].seed%2)){
+						massMove(source, i, destination);
+						break;
+					}
+				}
+				return true;
+			}
+			else if((destCard==null && card.value==13) || (destCard!=null && destCard.value==card.value+1 && destCard.seed%2!=card.seed%2)){
+				move(source, destination, true);
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	function move(source, destination, faceup){
+		let card = source[source.length-1];
+		destination.push({value:card.value, seed:card.seed, faceUp:faceup});
+		source.splice(source.length-1,1);
+	}
+	
+	function massMove(source, index, destination){
+		for(let i=index; i<source.length; i++){
+			let card = source[i];
+			destination.push({value:card.value, seed:card.seed, faceUp:true});
+		}
+		source.splice(index, source.length-index);
+	}
+	
+	function sendToFoundation(){
+		while(true){
+			let flag = false
+			for(let i=0; i<4; i++){
+				if(checkAndMove(waste, foundation[i])) flag = true;
+				for(let j=0; j<7; j++){
+					if(tableau[j].length>0 && tableau[j][tableau[j].length-1].faceUp)
+						if(checkAndMove(tableau[j], foundation[i])) flag = true;
+				}
+			}
+			if(!flag) break;
+		}
+		selected = null;
+	}
+</script>
+
+<body onload="init()">
+	<div id="container" class="container" tabindex="1" onkeydown="keydown(event);" onclick="leftClick(event); return false;" oncontextmenu="rightClick(); return false;" ></div>
+</body>

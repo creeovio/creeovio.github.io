@@ -1,0 +1,362 @@
+<style>
+	body{
+		margin: 0;
+		padding: 0;
+	}
+	.container{
+		min-width: 100%;
+		min-height: 100%;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		outline: none;
+		overflow: auto;
+	}
+	p{
+		padding: 0;
+		margin-top: 0;
+		text-align: center;
+		font-family: "Verdana", Geneva, sans-serif;
+		font-weight: bold;
+		font-size: 16px;
+	}
+	table{
+		table-layout:fixed;
+		padding: 0;
+		margin: hidden;
+		overflow-x: scroll;
+		white-space: nowrap;
+	}
+	tr{
+		padding: 0;
+		margin: hidden;
+	}
+	td{
+		text-align: center;
+		font-family: "Verdana", Geneva, sans-serif;
+		font-weight: bold;
+		font-size: 13px;
+		border: hidden;
+		overflow: hidden;
+		padding: 0;
+		-webkit-touch-callout: none;
+		-webkit-user-select: none;
+		-khtml-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+	}
+
+</style>
+
+<script>
+
+	var blue = "#3F51B5";
+	var green = "#4CAF50";
+	var red = "#F44336";
+	var purple = "#9C27B0";
+	var brown = "#795548";
+	var teal = "#009688";
+	var cellColor = "rgba(180,180,180,1)";
+	var cellLightColor = "rgba(180,180,180,0.2)";
+	var colors = [cellLightColor, blue, green, red, purple, brown, teal, "black", "grey"];
+	var container;
+	var table;
+	var text;
+	var cols = 30;		// easy:10, intermediate:16, hard:30
+	var rows = 16;		// easy:10, intermediate:16, hard:16
+	var mines = 99;		// easy:9, intermediate:40, hard:99
+	var flagged;
+	var t;				// 2-dim array with mine(9) or proximity(0..8) value for each cell
+	var d;				// 2-dim array with discovered(true) or undiscovered(false) value for each cell
+	var f;				// 2-dim array with flagged(true) or unflagged(false) value for each cell
+	var generated;		// flag for generated t table
+	var interval;		// interval for timer refresh
+	var timer;
+	var win;			// flag for victory
+	var lose;			// flag for defeat
+	
+	// init game variables and layout elements
+	function init(){
+	
+		// init variables
+		clearInterval(interval);
+		t = new Array(rows);
+		d = new Array(rows);
+		f = new Array(rows);
+		for(var i=0; i<rows; i++){
+			t[i] = new Array(cols);
+			d[i] = new Array(cols);
+			f[i] = new Array(cols);
+			for(var j=0; j<cols; j++){
+				d[i][j] = false;
+				f[i][j] = false;
+			}
+		}
+		timer = 0;
+		flagged = 0;
+		generated = false;
+		win = false;
+		lose = false;
+		
+		// init layout
+		container = document.getElementById("container");
+		container.style.backgroundColor = "white";
+		while(container.firstChild) container.removeChild(container.firstChild);
+		text = document.createElement("p");
+		container.appendChild(text);
+		table = document.createElement("table");
+		for(var i=0; i<rows; i++){
+			var tr = document.createElement("tr");
+			tr.style.height = 20+"px";
+			for(var j=0; j<cols; j++){
+				var td = document.createElement("td");
+				td.style.width = 20+"px";
+				td.setAttribute("onclick", "leftClick("+i+","+j+");");
+				td.setAttribute("oncontextmenu", "rightClick("+i+","+j+");return false;")
+				tr.appendChild(td);
+			}
+			table.appendChild(tr);
+		}
+		container.appendChild(table);
+		refresh();
+		container.focus();
+	}
+	
+	// refresh layout elements
+	function refresh(){
+		refreshText();
+		for(var i=0; i<rows; i++){
+			for(var j=0; j<cols; j++){
+				if(lose && t[i][j] == 9){
+					if(d[i][j]){
+						table.rows[i].cells[j].style.backgroundColor = red;
+						table.rows[i].cells[j].style.color = "black";
+						table.rows[i].cells[j].innerHTML = "&#128128;";
+					}
+					else if(f[i][j]){
+						table.rows[i].cells[j].style.backgroundColor = green;
+						table.rows[i].cells[j].style.color = "white";
+						table.rows[i].cells[j].innerHTML = "&#10003;";
+					}
+					else {
+						table.rows[i].cells[j].style.backgroundColor = cellColor;
+						table.rows[i].cells[j].style.color = "black";
+						table.rows[i].cells[j].innerHTML = "💣";
+					}
+				}
+				else if(win && t[i][j] == 9){
+					if(f[i][j]){
+						table.rows[i].cells[j].style.backgroundColor = green;
+						table.rows[i].cells[j].style.color = "white";
+						table.rows[i].cells[j].innerHTML = "&#10003;";
+					}
+					else {
+						table.rows[i].cells[j].style.backgroundColor = green;
+						table.rows[i].cells[j].style.color = "black";
+						table.rows[i].cells[j].innerHTML = "&#128163";
+					}
+				}
+				else {
+					if(f[i][j]){
+						table.rows[i].cells[j].style.backgroundColor = cellColor;
+						table.rows[i].cells[j].style.color = "white";
+						table.rows[i].cells[j].innerHTML = "⚑";
+					}
+					else if(d[i][j]){
+						if(t[i][j] == 0){
+							table.rows[i].cells[j].style.backgroundColor = cellLightColor;
+						}
+						else if(t[i][j] == 9){
+							table.rows[i].cells[j].style.backgroundColor = red;
+							table.rows[i].cells[j].style.color = "black";
+							table.rows[i].cells[j].innerHTML = "&#128163";
+						}
+						else {
+							table.rows[i].cells[j].style.backgroundColor = cellLightColor;
+							table.rows[i].cells[j].style.color = colors[t[i][j]];
+							table.rows[i].cells[j].innerHTML = t[i][j];
+						}
+					}
+					else {
+						table.rows[i].cells[j].style.backgroundColor = cellColor;
+						table.rows[i].cells[j].innerHTML = "";
+					}
+				}
+			}
+		}
+	}
+	
+	// refresh tooltip
+	function refreshText(){
+		text.innerHTML = "&#128163; "+(mines-flagged)+"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#8987 "+timer;
+	}
+	
+	// manage left click on a cell
+	function leftClick(row,col){
+		if(!generated) generate(row,col);
+		if(win || lose) return;
+		discover(row,col);
+		checkVictory();
+		refresh();
+	}
+	
+	// manage right click on a cell
+	function rightClick(row,col){
+		if(!generated || win || lose) return;
+		if(d[row][col]) discover(row,col);
+		else flag(row,col);
+		checkVictory();
+		refresh();
+	}
+	
+	// logic for discovering a cell
+	function discover(row,col){
+		
+		// if flagged do nothing, if undiscovered discover
+		if(f[row][col]) return;
+		if(!d[row][col]) discoverRecur(row,col);
+		
+		// if already discovered, check the number of flags around it and eventually discover its neighbors
+		else {
+			var n = 0;
+			for(var i=Math.max(0,row-1); i<=row+1 && i<rows; i++){
+				for(var j=Math.max(0,col-1); j<=col+1 && j<cols; j++){
+					if(f[i][j]) n++;
+				}
+			}
+			if(t[row][col] == n){
+				for(var i=Math.max(0,row-1); i<=row+1 && i<rows; i++){
+					for(var j=Math.max(0,col-1); j<=col+1 && j<cols; j++){
+						discoverRecur(i,j);
+					}
+				}
+			}
+		}
+	}
+	
+	// actually discover a cell
+	function discoverRecur(row,col){
+		
+		// if cell is undiscovered and unflagged, discover it
+		if(!d[row][col] && !f[row][col]){
+			d[row][col] = true;
+			
+			//if cell is empty(value 0), recursively discover all its neighbours
+			if(t[row][col] == 0){
+				for(var i=Math.max(0,row-1); i<=row+1 && i<rows; i++){
+					for(var j=Math.max(col-1); j<=col+1 && j<cols; j++){
+						discoverRecur(i,j);
+					}
+				}
+			
+			// if cell is a mine, end the game
+			} else if(t[row][col] == 9){
+				end(false);
+			}
+		}
+	}
+	
+	// flag a cell
+	function flag(row,col){
+		if(f[row][col]){
+			f[row][col] = false;
+			flagged--;
+		} else {
+			f[row][col] = true;
+			flagged++;
+		}
+	}
+	
+	// generate t table
+	function generate(row,col){
+		
+		// randomly place mines in empty cells not around the point of generation (first click)
+		for(var i=0; i<mines;){
+			var y = Math.floor(Math.random()*rows);
+			var x = Math.floor(Math.random()*cols);
+			if(t[y][x] != 9 && !(y>=row-1 && y<=row+1 && x>=col-1 && x<=col+1)){
+				t[y][x] = 9;
+				i++;
+			}
+		}
+		
+		// for each cell without a mine, count the neighbouring mines and set its value
+		for(var i=0; i<rows; i++){
+			for(var j=0; j<cols; j++){
+				if(t[i][j]!=9){
+					var n = 0;
+					for(var k=Math.max(0,i-1); k<=i+1 && k<rows; k++){
+						for(var l=Math.max(0,j-1); l<=j+1 && l<cols; l++){
+							if(t[k][l]==9 && !(k==i && l==j)) n++;
+						}
+					}
+					t[i][j] = n;
+				}
+			}
+		}
+		
+		// after generating the table, start the timer
+		interval = setInterval(function() {
+			timer++;
+			refreshText();
+		}, 1000);
+		generated = true;
+	}
+	
+	// check the conditions for victory
+	function checkVictory(){
+		for(var i=0; i<rows; i++){
+			for(var j=0; j<cols; j++){
+				if(!d[i][j] && t[i][j]!=9) return;
+			}
+		}
+		
+		// if no undiscovered non-mine cell is found, end the game
+		end(true);
+	}
+	
+	// end the game, with victory(true) or defeat(false)
+	function end(victory){
+		clearInterval(interval);
+		if(victory) win = true;
+		else lose = true;
+	}
+	
+	// reset all variables but keep the generated t table
+	function retry(){
+		clearInterval(interval);
+		for(var i=0; i<rows; i++){
+			for(var j=0; j<cols; j++){
+				d[i][j] = false;
+				f[i][j] = false;
+			}
+		}
+		timer = 'RETRY';
+		flagged = 0;
+		generated = true;
+		win = false;
+		lose = false;
+		refresh();
+	}
+	
+	// manage key presses
+	function keydown(event){
+		switch(event.keyCode){
+			case 82: // "r"
+			retry();
+			break;
+		}
+	}
+
+</script>
+
+<head>
+	<title>Minesweeper</title>
+</head>
+
+<body onload="init()">
+	<div id="container" class="container" tabindex="1" onkeydown="keydown(event);" oncontextmenu="return false;"></div>
+</body>
