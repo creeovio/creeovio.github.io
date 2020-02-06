@@ -202,8 +202,8 @@
         <canvas id="canvas"></canvas>
 		<div id="foreground">
 			<div id="foregroundContainer">
-				<form id="form" onsubmit="searchResource(event);">
-					<input type="text" id="input" placeholder="resource name"><img id="go" class="icon" onclick="searchResource(null);">
+				<form id="form" autocomplete="off" onsubmit="searchResource(event);">
+					<input type="text" id="input" placeholder="Open resource..."><img id="go" class="icon" onclick="searchResource(null);">
 				</form>
 				<img id="klondike" class="icon" onclick="openResource('klondike');">
 				<img id="minesweeper" class="icon" onclick="openResource('minesweeper');">
