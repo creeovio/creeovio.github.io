@@ -4,17 +4,12 @@
 </head>
 <style>
 	body{
-		margin: 0;
-		padding: 0;
+		display: table;
+		background-color: white;
 	}
 	.container{
-		min-width: 100%;
-		min-height: 100%;
-		padding: 0;
-		display: flex;
+		display: table;
 		flex-direction: column;
-		align-items: center;
-		justify-content: center;
 		outline: none;
 		overflow: auto;
 	}
@@ -107,7 +102,6 @@
 		
 		// init layout
 		container = document.getElementById("container");
-		container.style.backgroundColor = "white";
 		while(container.firstChild) container.removeChild(container.firstChild);
 		text = document.createElement("p");
 		container.appendChild(text);
