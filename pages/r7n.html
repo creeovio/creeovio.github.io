@@ -79,7 +79,7 @@
 		document.querySelectorAll("#table>tr").forEach(e => e.parentNode.removeChild(e));
 		document.querySelector("#loader").style.display = "block";
 		$.getJSON(
-			'http://www.whateverorigin.org/get?url=' + encodeURIComponent('https://www.ronaldo7.net/video/watch-football-live.html') + '&callback=?',
+			'https://www.whateverorigin.org/get?url=' + encodeURIComponent('https://www.ronaldo7.net/video/watch-football-live.html') + '&callback=?',
 			function(data){
 				content = document.createElement("div");
 				content.innerHTML = data.contents;
@@ -104,7 +104,7 @@
 		document.querySelectorAll("#table>tr").forEach(e => e.parentNode.removeChild(e));
 		document.querySelector("#loader").style.display = "block";
 		$.getJSON(
-			'http://www.whateverorigin.org/get?url=' + encodeURIComponent(matchLink) + '&callback=?',
+			'https://www.whateverorigin.org/get?url=' + encodeURIComponent(matchLink) + '&callback=?',
 			function(data){
 				content = document.createElement("div");
 				content.innerHTML = data.contents;
