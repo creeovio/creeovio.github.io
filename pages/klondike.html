@@ -24,6 +24,7 @@
 	var container;
 	var canvas;
 	var context;
+	var image;
 	var pattern;
 	const canvasRatio = 16/9;
 	const pi = Math.PI;
@@ -58,8 +59,8 @@
 		resizeCanvas();
 		container.appendChild(canvas);
 		context = canvas.getContext("2d");
-		var image = new Image();
-		image.src = "klondike.jpg";
+		image = new Image();
+		image.src = "klondike.png";
 		pattern = context.createPattern(image, 'repeat');
 		window.addEventListener('resize', function(event){
 			resizeCanvas();
@@ -122,7 +123,7 @@
 			}
 		for(let i=0; i<7; i++) context.strokeRect(layout.tableau.x + (layout.margin+layout.card.width)*i, layout.tableau.y, layout.card.width, layout.card.height);
 		//draw stock
-		context.fillStyle = colors.faceDown;
+		context.fillStyle = pattern;
 		if(stock.length>0){
 			drawCard(layout.stock.x, layout.stock.y, stock.length, null, false);
 		}
