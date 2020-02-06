@@ -1,6 +1,6 @@
 <head>
 	<title>minesweeper</title>
-	<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1"/>
 </head>
 <style>
 	body{
@@ -109,9 +109,11 @@
 		for(var i=0; i<rows; i++){
 			var tr = document.createElement("tr");
 			tr.style.height = 20+"px";
+			tr.style.minHeight = 20+"px";
 			for(var j=0; j<cols; j++){
 				var td = document.createElement("td");
 				td.style.width = 20+"px";
+				td.style.minWidth = 20+"px";
 				td.setAttribute("onclick", "leftClick("+i+","+j+");");
 				td.setAttribute("oncontextmenu", "rightClick("+i+","+j+");return false;")
 				tr.appendChild(td);
