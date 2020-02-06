@@ -10,6 +10,9 @@
         padding: 0;
         background-color: rgba(0,0,0,0.7);
     }
+	*:focus {
+		outline: none;
+	}
     #container {
         margin: 0 auto;
         padding: 0;
@@ -31,7 +34,7 @@
         width: 550px;
         height: 100px;
         font-size: 40px;
-        padding-left: 40px;
+        padding-left: 50px;
 		border-radius: 50px;
 		border: none;
 		background-color: rgba(255,255,255,0.5);
@@ -41,6 +44,7 @@
 		background-color: rgba(255,255,255,1);	
 	}
     #open {
+		margin-left: 50px;
         width: 100px;
         height: 100px;
 		content: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAABmJLR0QA/wD/AP+gvaeTAAACDklEQVR4nO3cP4sTURSG8fcsmC20FRstbG23VCSlIP5r3MbSzl60txDs1Vq/gB9BUBBhtdNO/ArKroXZ4rUYrIyaOZPkHmaeX3/nHvIQyA3DlQAAAAAAAAAAAAAAAIC+ovUAm2b7qqR9SaclfZb0NCK+tJ1qgmzv2H7uP/2wfa31fJNj++GSGL/9tH2j9YyTYXvX9vd/BCHKNtm+8J8YRNkm22dXDEKUbbF9QJRCbO+5+0XVJ8rN1nOPmu1Ltg97RFkQZcOIUhBRCiJKQUQpKBnlVuu5R40oBRGlIKIURJSCiFIQUQoiSkFEKahllEGvAdnelXRe0sl1DFPMXNITrf4ZHUu6HRGvhmyaCmL7hKRHku5pnDGyBkfJBnkp6U5205FbSJpHxLvM4t5BbO9JOshsNiFvIuJyZuFOYs08s9HEXLQ9yyzMBHFmI6wmE+T1uocYobcRscgs7B0kIj5KepHZbCIWku5nF2e+IZJ0V9JjSYfZjUfqWNJ+RLzPPmDowXCm7mB4ashzipqrwcEQSyT/OuFliE0gRiHEKIQYhRCjEGIUQoxCiFEIMQohRiHEKIQYhRCjEGIUQoxC3F0ccESMImx/IEYRts8RoxCvfj0TMbbB9sz2N2IUYvsBMQpxdwnmsyUxjmxfbz3f30zhmtgr6q6JPSPpk7prYr+2nQoAAAAAAAAAAAAAAABYp1+U0/uwdNAPwgAAAABJRU5ErkJggg==");
@@ -151,8 +155,7 @@
     <div id="container">
         <canvas id="canvas"></canvas>
         <form id="form" onsubmit="openResource(event);">
-            <input type="text" id="input" placeholder="resource name">
-            <img id="open" onclick="openResource(null);">
+            <input type="text" id="input" placeholder="resource name"><img id="open" onclick="openResource(null);">
         </form>
     </div>
 
