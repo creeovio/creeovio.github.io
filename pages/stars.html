@@ -1,3 +1,7 @@
+<head>
+	<title>stars</title>
+</head>
+
 <style>
 	body{
 		margin: 0 auto;
@@ -46,13 +50,9 @@
 	var interval;
 	var gradient;
 	var pi = Math.PI;
-	var keys = [];
 
 	//init variables
 	function init(){
-		window.addEventListener('resize', function(event){
-			location.reload();
-		});
 		//init canvas
 		container = document.getElementById("container");
 		canvas = document.getElementById("canvas");
@@ -198,11 +198,6 @@
 		if(Math.random() < fireworkFreq){
 			rockets.push({x: rocketOrigin.x, y:height, speed:1.2+Math.random(), sway:-0.25+Math.random()/2, lifetime:1});
 		}
-		//key events
-		for(var i=0; i<keys.length; i++){
-			switch(keys[i]){
-			}
-		}
 	}
 
 	function dist(x1, y1, x2, y2){
@@ -211,20 +206,13 @@
 		return Math.sqrt(dx*dx+dy*dy);
 	}
 
-	function keydown(event){
-		if(!keys.includes(event.keyCode)) keys.push(event.keyCode);
-	}
-
-	function keyup(event){
-		keys.splice(keys.indexOf(event.keyCode),1);
-	}
 
 </script>
 
 <body onload="init();">
 
-	<div id="container" tabindex="1" onkeydown="keydown(event);" onkeyup="keyup(event);">
-		<canvas id="canvas" onclick="clearInterval(interval);"></canvas>
+	<div id="container" tabindex="1">
+		<canvas id="canvas"></canvas>
 	</div>
 
 </body>
