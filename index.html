@@ -32,12 +32,17 @@
         height: 100px;
         font-size: 40px;
         padding-left: 40px;
+		border-radius: 10px;
     }
-    #button {
+    #open {
         width: 100px;
         height: 100px;
-        font-size: 40px;
+		content: url("data:image/png;base64,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");
+		opacity: 0.75;
     }
+	#open:hover, #open:active {
+		opacity: 1;	
+	}
 </style>
 
 <script type="text/javascript">
@@ -60,7 +65,6 @@
     var canvas;
     var context;
     var objects = [];
-    var player;
     var interval;
     var pi = Math.PI;
 
@@ -75,16 +79,16 @@
         context = canvas.getContext("2d");
         context.clearRect(0, 0, width, height);
         //init objects
-        player = {x:width/2, y:height/2, radius:minRadius, speed:maxSpeed};
         for(var i=0; i<N; i++){
+			let radius = minRadius+Math.random()*(maxRadius-minRadius);
             objects.push({
-                id:i,
-                x:-outerBounds+maxRadius+Math.random()*(width+2*(outerBounds-maxRadius)),
-                y:-outerBounds+maxRadius+Math.random()*(height+2*(outerBounds-maxRadius)),
-                radius:minRadius+Math.random()*(maxRadius-minRadius),
-                angle:Math.random()*2*pi,
-                speed:minSpeed+Math.random()*(maxSpeed-minSpeed),
-                color:randomColorString()
+                id: i,
+                x: -outerBounds+radius+Math.random()*(width+2*(outerBounds-radius)),
+                y: -outerBounds+radius+Math.random()*(height+2*(outerBounds-radius)),
+                radius: radius,
+                angle: Math.random()*2*pi,
+                speed: minSpeed+Math.random()*(maxSpeed-minSpeed),
+                color: randomColorString()
             });
         }
         //start loop
@@ -92,8 +96,6 @@
             update();
             draw();
         }, 1000/fps);
-        //set focus
-        container.focus();
     }
 
     //draw canvas
@@ -113,7 +115,6 @@
 
     //update variables
     function update(){
-        //object collision
         for(var i=0; i<objects.length; i++){
             //x collision
             if(objects[i].x-objects[i].radius <= -outerBounds || objects[i].x+objects[i].radius >= width+outerBounds) objects[i].angle = pi - objects[i].angle;
@@ -126,20 +127,11 @@
     }
 
     function randomColorString(){
-        var string = "rgba(";
-        string += Math.round(Math.random()*255);
-        string += ",";
-        string += Math.round(Math.random()*255);
-        string += ",";
-        string += Math.round(Math.random()*255);
-        string += ",";
-        string += minAlpha+Math.random()*(maxAlpha-minAlpha);
-        string += ")";
-        return string;
+        return "rgba(" + Math.round(Math.random()*255) + "," + Math.round(Math.random()*255) + "," + Math.round(Math.random()*255) + "," + minAlpha+Math.random()*(maxAlpha-minAlpha) + ")";
     }
     
     function openResource(event) {
-        event.preventDefault();
+        if(event) event.preventDefault();
         let res = document.getElementById("input").value;
         document.getElementById("input").value = "";
         if(res != null && res.trim() != "") window.open("pages/" + res + ".html");
@@ -152,8 +144,8 @@
     <div id="container">
         <canvas id="canvas"></canvas>
         <form id="form" onsubmit="openResource(event);">
-            <input type="text" id="input" placeholder="enter resource name">
-            <input type="submit" id="button" value="GO">
+            <input type="text" id="input" placeholder="resource name">
+            <img id="open" onclick="openResource(null);">
         </form>
     </div>
 
