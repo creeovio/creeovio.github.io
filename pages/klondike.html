@@ -129,7 +129,7 @@
 		//draw stock
 		context.fillStyle = pattern;
 		if(stock.length>0){
-			drawCard(layout.stock.x, layout.stock.y, stock.length, null, false);
+			drawCard(layout.stock.x, layout.stock.y, "x"+stock.length, null, false);
 		}
 		//draw waste
 		if(waste.length>0) for(let i=Math.max(waste.length-stockToWaste, 0); i<waste.length; i++){
@@ -147,7 +147,7 @@
 				let k=0;
 				for(let j=0; j<tableau[i].length; j++){
 					if(!tableau[i][j].faceUp && (j==tableau[i].length-1 || tableau[i][j+1].faceUp)){
-						drawCard(layout.tableau.x + (layout.card.width+layout.margin)*i, layout.tableau.y, j+1, null, false);
+						drawCard(layout.tableau.x + (layout.card.width+layout.margin)*i, layout.tableau.y, "x"+(j+1), null, false);
 						k++;
 					}
 					if(tableau[i][j].faceUp){
