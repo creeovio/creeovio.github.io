@@ -172,7 +172,7 @@
 		context.fillRect(x, y, layout.card.width, layout.card.height);
 		context.strokeStyle = "black";
 		context.strokeRect(x, y, layout.card.width, layout.card.height);
-		context.fillStyle = !faceUp ? "white" : (seed%2==0 ? "red" : "black");
+		context.fillStyle = !faceUp ? "rgba(255,255,255,0.7)" : (seed%2==0 ? "red" : "black");
 		context.font = layout.card.width/4+"px sans-serif";
 		context.textAlign = faceUp ? "right" : "left";
 		context.textBaseline = "top";
