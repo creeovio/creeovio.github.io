@@ -27,7 +27,7 @@
 	const canvasRatio = 16/9;
 	const pi = Math.PI;
 	const tpi = pi*2;
-	const colors = {background:"white", lines:"rgba(0,0,0,0.4)", highlighted:"yellow", selected:"cyan", faceDown:"darkgrey", faceUp:"white"};
+	const colors = {background:"darkgreen", lines:"rgba(0,0,0,0.4)", highlighted:"yellow", selected:"cyan", faceDown:"#1565c0", faceUp:"white"};
 	const layout = {card:{}, stock:{}, waste:{}, tableau:{}, foundation:{}};
 	const values = ["0", "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 	const seeds = ["♦", "♣", "♥", "♠"];
@@ -163,7 +163,7 @@
 		context.strokeStyle = "black";
 		context.strokeRect(x, y, layout.card.width, layout.card.height);
 		context.fillStyle = !faceUp ? "white" : (seed%2==0 ? "red" : "black");
-		context.font = layout.card.width/2.5+"px Comic Sans MS";
+		context.font = layout.card.width/3+"px Comic Sans MS";
 		context.textAlign = faceUp ? "right" : "left";
 		context.textBaseline = "top";
 		if(faceUp){
