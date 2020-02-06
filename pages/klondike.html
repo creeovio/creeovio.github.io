@@ -24,10 +24,11 @@
 	var container;
 	var canvas;
 	var context;
+	var pattern;
 	const canvasRatio = 16/9;
 	const pi = Math.PI;
 	const tpi = pi*2;
-	const colors = {background:"darkgreen", lines:"rgba(0,0,0,0.4)", highlighted:"yellow", selected:"cyan", faceDown:"#1565c0", faceUp:"white"};
+	const colors = {background:"#2e7d32", lines:"rgba(0,0,0,0.4)", highlighted:"yellow", selected:"cyan", faceDown:"#3f51b5", faceUp:"white"};
 	const layout = {card:{}, stock:{}, waste:{}, tableau:{}, foundation:{}};
 	const values = ["0", "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 	const seeds = ["♦", "♣", "♥", "♠"];
@@ -57,10 +58,14 @@
 		resizeCanvas();
 		container.appendChild(canvas);
 		context = canvas.getContext("2d");
+		var image = new Image();
+		image.src = "klondike.jpg";
+		pattern = context.createPattern(image, 'repeat');
 		window.addEventListener('resize', function(event){
 			resizeCanvas();
 			draw();
 		});
+		
 		//init tableau
 		shuffle(deck);
 		for(let i=0; i<7; i++){
@@ -110,7 +115,7 @@
 			let x = layout.foundation.x + (layout.margin+layout.card.width)*i;
 			context.strokeRect(x, layout.foundation.y, layout.card.width, layout.card.height);
 			context.fillStyle = colors.lines;
-			context.font = layout.card.width*0.8+"px Comic Sans MS";
+			context.font = layout.card.width*0.8+"px sans-serif";
 			context.textAlign = "center";
 			context.textBaseline = "middle";
 			context.fillText(seeds[i], x+layout.card.width/2, layout.foundation.y+layout.card.height/2);
@@ -158,12 +163,12 @@
 	}
 	
 	function drawCard(x, y, value, seed, faceUp){
-		context.fillStyle = faceUp ? colors.faceUp : colors.faceDown;
+		context.fillStyle = faceUp ? colors.faceUp : pattern;
 		context.fillRect(x, y, layout.card.width, layout.card.height);
 		context.strokeStyle = "black";
 		context.strokeRect(x, y, layout.card.width, layout.card.height);
 		context.fillStyle = !faceUp ? "white" : (seed%2==0 ? "red" : "black");
-		context.font = layout.card.width/4+"px Comic Sans MS";
+		context.font = layout.card.width/4+"px sans-serif";
 		context.textAlign = faceUp ? "right" : "left";
 		context.textBaseline = "top";
 		if(faceUp){
