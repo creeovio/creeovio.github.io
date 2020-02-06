@@ -11,7 +11,7 @@
 		align-items: center;
 		justify-content: center;
 		outline: none;
-		background-color: white;
+		background-color: darkgreen;
 	}
 	.canvas{
 		display: block;
@@ -163,14 +163,14 @@
 		context.strokeStyle = "black";
 		context.strokeRect(x, y, layout.card.width, layout.card.height);
 		context.fillStyle = !faceUp ? "white" : (seed%2==0 ? "red" : "black");
-		context.font = layout.card.width/3+"px Comic Sans MS";
+		context.font = layout.card.width/4+"px Comic Sans MS";
 		context.textAlign = faceUp ? "right" : "left";
 		context.textBaseline = "top";
 		if(faceUp){
-			context.fillText(seeds[seed]+" "+values[value], x+layout.card.width*0.9, y); 
+			context.fillText(seeds[seed]+" "+values[value], x+layout.card.width*0.9, y+layout.card.height*0.05); 
 			context.fillText(seeds[seed], x+layout.card.width*0.9, y+layout.card.height*0.3); 
 		}
-		else context.fillText(value, x+layout.card.width*0.1, y);
+		else context.fillText(value, x+layout.card.width*0.1, y*1.05);
 	}
 	
 	function drawSelectionLine(item){
