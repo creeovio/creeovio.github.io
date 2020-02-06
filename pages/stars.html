@@ -20,9 +20,9 @@
 	//game settings
 	var width = window.innerWidth;
 	var height = window.innerHeight;
-	var northX = window.innerWidth+100;
-	var northY = window.innerHeight+100;
-	var skyRadius = window.innerWidth+200;
+	var northX = window.innerWidth*1.1;
+	var northY = window.innerHeight*1.1;
+	var skyRadius = Math.max(window.innerWidth, window.innerHeight)*1.2;
 	var N = 1000;
 	var speed = 0.0001;
 	var starRadius = 1;
