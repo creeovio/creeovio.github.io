@@ -110,7 +110,7 @@
 			let x = layout.foundation.x + (layout.margin+layout.card.width)*i;
 			context.strokeRect(x, layout.foundation.y, layout.card.width, layout.card.height);
 			context.fillStyle = colors.lines;
-			context.font = layout.card.width+"px Comic Sans MS";
+			context.font = layout.card.width*0.8+"px Comic Sans MS";
 			context.textAlign = "center";
 			context.textBaseline = "middle";
 			context.fillText(seeds[i], x+layout.card.width/2, layout.foundation.y+layout.card.height/2);
@@ -168,7 +168,7 @@
 		context.textBaseline = "top";
 		if(faceUp){
 			context.fillText(seeds[seed]+" "+values[value], x+layout.card.width*0.9, y+layout.card.height*0.05); 
-			context.fillText(seeds[seed], x+layout.card.width*0.9, y+layout.card.height*0.2); 
+			context.fillText(seeds[seed], x+layout.card.width*0.9, y+layout.card.height*0.3); 
 		}
 		else context.fillText(value, x+layout.card.width*0.1, y+layout.card.height*0.05);
 	}
