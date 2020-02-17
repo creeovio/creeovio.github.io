@@ -98,6 +98,14 @@
 		transition: opacity 0.2s;
 		transition-delay: 1s;
 	}
+	#pip {
+		opacity: 0;
+		display: inline-block;
+		padding: 16px 20px 16px 20px;
+		font-size: 14px;
+		font-weight: bold;
+		color: #455a64;
+	}
 	#close {
 		float: right;
 		opacity: 0;
@@ -107,7 +115,7 @@
 		font-weight: bold;
 		color: #455a64;
 	}
-	body.playing>#close {
+	body.playing>#pip, body.playing>#close {
 		opacity: 1;
 		transition: opacity 0.2s;
 		transition-delay: 0.4s;
@@ -366,8 +374,12 @@
 		video.play();
 	}
 	
-	function fullscreen() {
+	function request() {
 		document.getElementById('video').requestFullscreen();
+	}
+	
+	function pip() {
+		document.querySelector("#video").requestPictureInPicture();
 	}
 	
 	function closeVideo() {
@@ -439,10 +451,12 @@
 			<img src="https://www.iluoghidellarete.it/images/One_Piece_Logosvg.png">
 		</div>
 		<div id="loader"></div>
-		<video id="video" width="424" controls autoplay controlsList="nodownload" onclick="fullscreen()" ><source id="source" src="" type="video/mp4"></video>
+		<video id="video" width="424" controls autoplay controlsList="nodownload" ><source id="source" src="" type="video/mp4"></video>
 	</div>
 	<div id="filter" style="opacity: 0;" onclick="toggleFilter()">FILTER
-	</div><div id="close" onclick="closeVideo()">CLOSE VIDEO</div>
+	</div><div id="pip" onclick="pip()">PIP
+	</div><div id="close" onclick="closeVideo()">CLOSE VIDEO
+	</div>
 	<div id="filterContent">
 		<span id="customFilter" class="season">Custom:&nbsp;
 			<input type="number" min="1" step="1" id="customFrom" onclick="event.stopPropagation()">&nbsp;to&nbsp;
