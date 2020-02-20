@@ -232,7 +232,8 @@
 </style>
 
 <script>
-	const videoSrcTemplate = "https://www.animeunityserver65.cloud/DDL/Anime/OnePiece/OnePiece_Ep_XXX_SUB_ITA.mp4";
+	//const videoSrcTemplate = "https://www.animeunityserver65.cloud/DDL/Anime/OnePiece/OnePiece_Ep_XXX_SUB_ITA.mp4";
+	const videoSrcTemplate = "https://streamcdnuservi4apiao.b-cdn.net/xiWvvKV/dop/OP/OP360Sub/One_Piece_XXX_Subbed_OnePiece360.com.mp4?_=2";
 	const videoSrc2Template = "https://www.animelove.it/anime-video/streaming/One-Piece/XXX/";
 	const linkTemplate = "https://www.animehdita.org/host/srv3.php?s=65&v=OnePiece/OnePiece_Ep_XXX_SUB_ITA";
 	const mirrorTemplate = "https://www.animelove.it/anime/streaming/One-Piece/XXX";
@@ -327,13 +328,13 @@
 			let spanWatch1 = document.createElement("span");
 			spanWatch1.classList.add("watch");
 			spanWatch1.classList.add("button");
-			spanWatch1.innerHTML = "PLAY";
+			spanWatch1.innerHTML = "ENG";
 			spanWatch1.setAttribute("onclick", "event.stopPropagation(); openLink(1, this, "+opwl.episodes[i].number+")");
 			divContent.appendChild(spanWatch1);
 			let spanWatch2 = document.createElement("span");
 			spanWatch2.classList.add("watch");
 			spanWatch2.classList.add("button");
-			spanWatch2.innerHTML = "MIRROR";
+			spanWatch2.innerHTML = "ITA";
 			spanWatch2.setAttribute("onclick", "event.stopPropagation(); openLink(2, this, "+opwl.episodes[i].number+")");
 			divContent.appendChild(spanWatch2);
 			let spanMirror = document.createElement("span");
@@ -375,7 +376,7 @@
 	
 	function openMirror(element, number) {
 		mark(element, number, true);
-		window.open(linkTemplate.replace("XXX", number));
+		window.open(mirrorTemplate.replace("XXX", number));
 	}
 	
 	function mark(element, number, watched) {
