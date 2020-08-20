@@ -235,6 +235,7 @@
 	//const videoSrcTemplate = "https://www.animeunityserver65.cloud/DDL/Anime/OnePiece/OnePiece_Ep_XXX_SUB_ITA.mp4";
 	const videoSrcTemplate = "https://streamcdnuservi4apiao.b-cdn.net/xiWvvKV/dop/OP/OP360Sub/One_Piece_XXX_Subbed_OnePiece360.com.mp4?_=2";
 	const videoSrc2Template = "https://www.animelove.it/anime-video/streaming/One-Piece/XXX/";
+	const videoSrc3Template = "http://onepiecepower.info/anime/onepiece/subita/901_1000/XXX.mp4";
 	const linkTemplate = "https://www.animehdita.org/host/srv3.php?s=65&v=OnePiece/OnePiece_Ep_XXX_SUB_ITA";
 	const mirrorTemplate = "https://www.animelove.it/anime/streaming/One-Piece/XXX";
 	const firebaseConfig = {
@@ -360,7 +361,8 @@
 		mark(element, number, true);
 		//window.open(linkTemplate.replace("XXX", number));
 		if(n==1) document.querySelector("#source").setAttribute("src", videoSrcTemplate.replace("XXX", number));
-		else document.querySelector("#source").setAttribute("src", videoSrc2Template.replace("XXX", number));
+		else if(number > 900) document.querySelector("#source").setAttribute("src", videoSrc2Template.replace("XXX", number));
+		else document.querySelector("#source").setAttribute("src", videoSrc3Template.replace("XXX", number));
 		document.querySelector("body").classList.add("playing");
 		let video = document.querySelector("#video");
 		video.load();
