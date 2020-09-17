@@ -79,6 +79,11 @@ li{
 }
 .project{
 	font-weight: bold;
+	display: inline-block;
+	font-size: 12px;
+	margin: 0;
+	overflow: hidden;
+	vertical-align: top;
 }
 .link{
 	display: inline-block;
@@ -160,6 +165,7 @@ li{
 	background-repeat: no-repeat;
 	background-size: 16px;
 	vertical-align: initial;
+	margin-left: 20px;
 	padding: 0;
 }
 .environmentLabel{
