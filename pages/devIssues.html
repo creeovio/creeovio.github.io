@@ -30,6 +30,19 @@
 	var scrollAnimation;
 	var editAnimation;
 	
+	function stringToColor(str) {
+		var hash = 0;
+		for (var i = 0; i < str.length; i++) {
+			hash = str.charCodeAt(i) + ((hash << 5) - hash);
+		}
+		var color = '#';
+		for (var i = 0; i < 3; i++) {
+			var value = (hash >> (i * 8)) & 0xFF;
+			color += ('00' + value.toString(16)).substr(-2);
+		}
+		return color;
+	}
+	
 	function createLi(object){
 		let li = document.createElement("li");
 		let div = document.createElement("div");
@@ -54,7 +67,8 @@
 		editIcon.setAttribute("class", "editIcon");
 		let project = document.createElement("p");
 		project.setAttribute("class", "project");
-		project.innerHTML = object.project + " - ";
+		project.style.color = stringToColor(object.project);
+		project.innerHTML = object.project;
 		let notes = document.createElement("p");
 		notes.setAttribute("class", "notes");
 		notes.innerHTML = object.notes;
@@ -73,13 +87,13 @@
 		edit.appendChild(editIcon);
 		div.appendChild(edit);
 		div.appendChild(label);
+		div.appendChild(project);
 		div.appendChild(environmentIcon);
 		div.appendChild(environmentLabel);
 		div.appendChild(statusIcon);
 		div.appendChild(statusLabel);
 		if(object.link != null && object.link != "") div.appendChild(link);
 		div.appendChild(document.createElement("br"));
-		if(object.project != null && object.project != "") div.appendChild(project);
 		div.appendChild(title);
 		if(object.notes != null && object.notes != "") div.appendChild(notes);
 		li.appendChild(div);
