@@ -30,19 +30,6 @@
 	//var scrollAnimation;
 	var editAnimation;
 	
-	function stringToColor_OLD(str) {
-		var hash = 0;
-		for (var i = 0; i < str.length; i++) {
-			hash = str.charCodeAt(i) + ((hash << 5) - hash);
-		}
-		var color = '#';
-		for (var i = 0; i < 3; i++) {
-			var value = (hash >> (i * 8)) & 0xFF;
-			color += ('00' + value.toString(16)).substr(-2);
-		}
-		return color;
-	}
-	
 	function stringToColor(string) {
 	    var hash = 0;
 	    if (string.length == 0) return hash;
@@ -51,7 +38,7 @@
 		hash = hash & hash;
 	    }
 	    var shortened = hash % 360;
-	    return "hsl(" + shortened + ", 100%, 30%)";
+	    return "hsl(" + shortened + ", 90%, 50%)";
 	}
 	
 	function createLi(object){
@@ -543,7 +530,7 @@
 		</div>
 		<div class="searchDiv">
 			<input id="searchInput" class="searchInput" placeholder="SEARCH" oninput="updateFilterString(); scrollToTop();">
-			<input type="button" id="doneButton" class="doneButton selectedDoneButton" value="DISPLAY DONE" onclick="toggleShowDone(); scrollToTop();">
+			<input type="button" id="doneButton" class="doneButton" value="DISPLAY DONE" onclick="toggleShowDone(); scrollToTop();">
 			<input type="button" class="newButton" value="NEW ISSUE" onclick="newItem();">
 		</div>
 	</div>
