@@ -41,8 +41,7 @@
 	    return "hsl(" + shortened + ", 70%, 35%)";
 	}
 	
-	function createLi(object){
-		let li = document.createElement("li");
+	function createItemDiv(object){
 		let div = document.createElement("div");
 		div.setAttribute("class", "item");
 		let label = document.createElement("div");
@@ -94,21 +93,18 @@
 		div.appendChild(document.createElement("br"));
 		div.appendChild(title);
 		if(object.notes != null && object.notes != "") div.appendChild(notes);
-		li.appendChild(div);
-		return li;
+		return div;
 	}
-	function createHeader(string){
-		let li = document.createElement("li");
+	function createHeaderDiv(string){
 		let div = document.createElement("div");
 		div.setAttribute("class", "header");
 		let title = document.createElement("label");
 		title.setAttribute("class", "header");
 		title.innerHTML = string;
 		div.appendChild(title);
-		li.appendChild(div);
-		return li;
+		return div;
 	}
-	function createEditBox(id, title, project, status, environment, link, notes, timestamp){
+	function createEditBoxDiv(id, title, project, status, environment, link, notes, timestamp){
 		groupBySelected();
 		
 		let editBox = document.createElement("div");
@@ -255,21 +251,20 @@
 		table.appendChild(tr);
 		
 		editBox.appendChild(table);
-		let li = document.createElement("li");
-		li.appendChild(editBox);
-		return li;
+		return editBox;
 	}
 	function init(){
 		list = document.getElementById("list");
 		getData();
 		//window.addEventListener('wheel', function(e){smoothScroll(e)});
 	}
+	// unused
 	function showAll(){
 		while(list.firstChild){
 			list.removeChild(list.firstChild);
 		}
 		for(let i=0; i<data.items.length; i++){
-			if(filter(data.items[i])) list.appendChild(createLi(data.items[i]));
+			if(filter(data.items[i])) list.appendChild(createItemDiv(data.items[i]));
 		}
 		document.getElementById("dateButton").classList.remove("selectedGroupButton");
 		document.getElementById("statusButton").classList.remove("selectedGroupButton");
@@ -312,9 +307,9 @@
 				else header = "Older";
 				if(header != d){
 					d = header;
-					list.appendChild(createHeader(d));
+					list.appendChild(createHeaderDiv(d));
 				}
-				list.appendChild(createLi(data.items[i]));
+				list.appendChild(createItemDiv(data.items[i]));
 			}
 		}
 		document.getElementById("dateButton").classList.add("selectedGroupButton");
@@ -335,9 +330,9 @@
 			if(filter(data.items[i])){
 				if(data.items[i].status != s){
 					s = data.items[i].status;
-					list.appendChild(createHeader(s.replace("_", " ")));
+					list.appendChild(createHeaderDiv(s.replace("_", " ")));
 				}
-				list.appendChild(createLi(data.items[i]));
+				list.appendChild(createItemDiv(data.items[i]));
 			}
 		}
 		document.getElementById("dateButton").classList.remove("selectedGroupButton");
@@ -358,9 +353,9 @@
 			if(filter(data.items[i])){
 				if(data.items[i].environment.split(">")[0] != e){
 					e = data.items[i].environment.split(">")[0];
-					list.appendChild(createHeader(e.toUpperCase()));
+					list.appendChild(createHeaderDiv(e.toUpperCase()));
 				}
-				list.appendChild(createLi(data.items[i]));
+				list.appendChild(createItemDiv(data.items[i]));
 			}
 		}
 		document.getElementById("dateButton").classList.remove("selectedGroupButton");
@@ -381,9 +376,9 @@
 			if(filter(data.items[i])){
 				if(data.items[i].project != p){
 					p = data.items[i].project;
-					list.appendChild(createHeader(p));
+					list.appendChild(createHeaderDiv(p));
 				}
-				list.appendChild(createLi(data.items[i]));
+				list.appendChild(createItemDiv(data.items[i]));
 			}
 		}
 		document.getElementById("dateButton").classList.remove("selectedGroupButton");
@@ -399,9 +394,9 @@
 		else if(document.getElementById("projectButton").classList.contains("selectedGroupButton")) groupByProject();
 	}
 	function newItem(){
-		let li = createEditBox(null, null, null, null, null, null, null, null);
-		list.insertBefore(li, list.firstChild);
-		li.childNodes[0].childNodes[0].style.visibility = "visible";
+		let div = createEditBoxDiv(null, null, null, null, null, null, null, null);
+		list.insertBefore(div, list.firstChild);
+		div.childNodes[0].style.visibility = "visible";
 		scrollToTop();
 	}
 	function edit(id, listIndex){
@@ -411,19 +406,19 @@
 				index = i;
 			}
 		}
-		let li = createEditBox(data.items[index].id, data.items[index].title, data.items[index].project, data.items[index].status, data.items[index].environment, data.items[index].link, data.items[index].notes, data.items[index].timestamp);
+		let editBox = createEditBoxDiv(data.items[index].id, data.items[index].title, data.items[index].project, data.items[index].status, data.items[index].environment, data.items[index].link, data.items[index].notes, data.items[index].timestamp);
 		
-		let liToRemove = list.childNodes[listIndex];
-		list.insertBefore(li, liToRemove);
-		let targetHeight = li.childNodes[0].offsetHeight;
-		li.childNodes[0].style.maxHeight = liToRemove.childNodes[0].offsetHeight - 26;
-		list.removeChild(liToRemove);
+		let divToRemove = list.childNodes[listIndex];
+		list.insertBefore(editBox, divToRemove);
+		let targetHeight = editBox.offsetHeight;
+		editBox.style.maxHeight = divToRemove.offsetHeight - 26;
+		list.removeChild(divToRemove);
 		clearInterval(editAnimation);
 		editAnimation = setInterval(function(){
-			li.childNodes[0].style.maxHeight = parseInt(li.childNodes[0].style.maxHeight) + 4;
-			if(parseInt(li.childNodes[0].style.maxHeight) >= targetHeight){
-				li.childNodes[0].childNodes[0].style.maxHeight = null;
-				li.childNodes[0].childNodes[0].style.visibility = "visible";
+			editBox.style.maxHeight = parseInt(editBox.style.maxHeight) + 4;
+			if(parseInt(editBox.style.maxHeight) >= targetHeight){
+				editBox.childNodes[0].style.maxHeight = null;
+				editBox.childNodes[0].style.visibility = "visible";
 				clearInterval(editAnimation);
 				return;
 			}
@@ -534,5 +529,5 @@
 			<input type="button" class="newButton" value="NEW ISSUE" onclick="newItem();">
 		</div>
 	</div>
-	<ul id="list" class="list"/>
+	<div id="list" class="list"/>
 </body>
