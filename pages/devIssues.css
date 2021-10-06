@@ -111,9 +111,8 @@ li{
 	cursor: hand;
 	background-color: transparent;
    	border-radius: 4px 4px 0px 0px;
-	visibility: hidden;
 }
-edit:hover{
+.edit:hover{
 	background-color: #eceff1;
 }
 .editLabel{
@@ -145,7 +144,7 @@ edit:hover{
 	background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAABuwAAAbsBOuzj4gAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAGBSURBVEiJ7ZS/TsJQFMa/AyQOxsQ38AUceALDYHgAnYwDJe4mSlscaDlKB+mtaMJsoMaExAdwYVET48rgC/gGLiaaCMcFhUBLW9SNb7vnO/f35f7JARYCoFnukVZR5SAv/Vt40fLqAKogbGZzeerdd+/+LGCP1fpAcAUgNSzlshv5995D9/G7JxW8NVrMnLpk45kADUD/xyCcjl/XXAFFWzkv/eUOM2daNeN6OoRWR3kJVbDdBgkdDJe3K69LW83m/kfBdrdJqCOQil8z3bkCNFudQGCN1wi4WUu/7TLzp8Zuts1mb8KPp6LlHgvIDvKGITvMPJj0MrHgtuuJUCnMF+ApCA7E+KZRcBI6bDvGRag/C16wlCJAnwVvOfr5LEboN42CAyhFwYGQN9Bs5ULC4SKk+47eiIIDAScoWl4dAiMCfhYHPhWg2YoFYoY1E8RIAgcmr0hQDWsUiNOumV4S+HRAON30HVMlhQMxhp1Aym3HmAsORJ1AwL4zGlwL/Yu+AJr9jpsOEX7wAAAAAElFTkSuQmCC");
 	visibility: hidden;
 }
-edit:hover>.editLabel, .edit:hover>.editIcon {
+.edit:hover>.editLabel, .edit:hover>.editIcon {
 	visibility: visible;
 }
 .link:hover{
