@@ -417,17 +417,19 @@
 		let divToRemove = list.childNodes[listIndex];
 		list.insertBefore(editBox, divToRemove);
 		let targetHeight = editBox.offsetHeight;
-		editBox.style.maxHeight = divToRemove.offsetHeight;
+		let heightDelta = (targetHeight - divToRemove.offsetHeight) / 20;
 		let targetWidth = editBox.offsetWidth;
-		editBox.style.maxWidth = Math.min(divToRemove.offsetWidth, targetWidth);
+		let widthDelta = (targetWidth - divToRemove.offsetWidth) / 20;
+		editBox.style.maxHeight = divToRemove.offsetHeight - heightDelta;
+		editBox.style.maxWidth = divToRemove.offsetWidth - widthDelta;
 		list.removeChild(divToRemove);
 		clearInterval(editAnimation);
 		editAnimation = setInterval(function(){
 			if(parseInt(editBox.style.maxHeight) < targetHeight){
-				editBox.style.maxHeight = parseInt(editBox.style.maxHeight) + 8;
+				editBox.style.maxHeight = parseInt(editBox.style.maxHeight) + heightDelta;
 			}			
 			if(parseInt(editBox.style.maxWidth) < targetWidth){
-				editBox.style.maxWidth = parseInt(editBox.style.maxWidth) + 8;
+				editBox.style.maxWidth = parseInt(editBox.style.maxWidth) + widthDelta;
 			}
 			if(parseInt(editBox.style.maxHeight) >= targetHeight && parseInt(editBox.style.maxWidth) >= targetWidth){
 				editBox.childNodes[0].style.maxHeight = null;
