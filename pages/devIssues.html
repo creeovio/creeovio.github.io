@@ -417,18 +417,26 @@
 		let divToRemove = list.childNodes[listIndex];
 		list.insertBefore(editBox, divToRemove);
 		let targetHeight = editBox.offsetHeight;
-		editBox.style.maxHeight = divToRemove.offsetHeight - 26;
+		editBox.style.maxHeight = divToRemove.offsetHeight;
+		let targetWidth = editBox.offsetWidth;
+		editBox.style.maxWidth = Math.min(divToRemove.offsetWidth, targetWidth);
 		list.removeChild(divToRemove);
 		clearInterval(editAnimation);
 		editAnimation = setInterval(function(){
-			editBox.style.maxHeight = parseInt(editBox.style.maxHeight) + 4;
-			if(parseInt(editBox.style.maxHeight) >= targetHeight){
+			if(parseInt(editBox.style.maxHeight) < targetHeight){
+				editBox.style.maxHeight = parseInt(editBox.style.maxHeight) + 8;
+			}			
+			if(parseInt(editBox.style.maxWidth) < targetWidth){
+				editBox.style.maxWidth = parseInt(editBox.style.maxWidth) + 8;
+			}
+			if(parseInt(editBox.style.maxHeight) >= targetHeight && parseInt(editBox.style.maxWidth) >= targetWidth){
 				editBox.childNodes[0].style.maxHeight = null;
+				editBox.childNodes[0].style.maxWidth = null;
 				editBox.childNodes[0].style.visibility = "visible";
 				clearInterval(editAnimation);
 				return;
 			}
-		}, 1);
+		}, 5);
 	}
 	function closeEditBox(event){
 		groupBySelected();
