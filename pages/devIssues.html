@@ -21,7 +21,7 @@
 
 <script>
 
-	var statuses = {"nd":0, "to_do":1, "to_test":2, "to_deploy":3, "on_hold":4, "done":5};
+	var statuses = {"nd":0, "to_do":1, "to_test":2, "to_deploy":3, "on_hold":4, "delegated":5, "done":6};
 	var environments = {"svil":0, "test":1, "pp":2, "pro":3};
 	var list;
 	var data;
@@ -181,7 +181,7 @@
 		let statusSelect = document.createElement("select");
 		statusSelect.id = "statusSelect";
 		statusSelect.setAttribute("class", "editBoxSelect");
-		for(const s of ["nd", "to_do", "to_test", "on_hold", "to_deploy", "done"]){
+		for(const s of ["nd", "to_do", "to_test", "to_deploy", "on_hold", "delegated", "done"]){
 			let option = document.createElement("option");
 			option.value = s;
 			option.innerHTML = s.replace("_", " ");
